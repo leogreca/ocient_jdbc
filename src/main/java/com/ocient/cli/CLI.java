@@ -217,6 +217,9 @@ public class CLI {
       setSchema(cmd);
     } else if (cmd.equalsIgnoreCase("GET SCHEMA")) {
       getSchema(cmd);
+      // recognize explain pipeline not as explain
+    } else if (startsWithIgnoreCase(cmd, "EXPLAIN PIPELINE")) {
+      explainPipeline(cmd);
     } else if (startsWithIgnoreCase(cmd, "EXPLAIN")) {
       explain(cmd);
     } else if (startsWithIgnoreCase(cmd, "CREATE")
@@ -558,6 +561,38 @@ public class CLI {
   }
 
   private static void exportTable(final String cmd) {
+    long start = 0;
+    long end = 0;
+    if (!isConnected()) {
+      System.out.println("No database connection exists");
+      return;
+    }
+    ResultSet rs = null;
+    try {
+      start = System.currentTimeMillis();
+      stmt.execute(cmd);
+      rs = stmt.getResultSet();
+      final ResultSetMetaData meta = rs.getMetaData();
+      if (outputCSVFile.isEmpty()) {
+        printResultSet(rs, meta);
+      } else {
+        outputResultSet(rs, meta);
+        outputCSVFile = "";
+      }
+      printWarnings(stmt);
+      end = System.currentTimeMillis();
+      rs.close();
+      printTime(start, end);
+    } catch (final Exception e) {
+      try {
+        rs.close();
+      } catch (final Exception f) {
+      }
+      System.out.println("Error: " + e.getMessage());
+    }
+  }
+
+  private static void explainPipeline(final String cmd) {
     long start = 0;
     long end = 0;
     if (!isConnected()) {

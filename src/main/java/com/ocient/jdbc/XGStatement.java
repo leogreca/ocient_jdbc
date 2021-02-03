@@ -532,7 +532,10 @@ public class XGStatement implements Statement {
     }
 
     try {
-      if (startsWithIgnoreCase(sql, "EXPLAIN ")) {
+      // recognize explain pipeline statement not as explain
+      if (startsWithIgnoreCase(sql, "EXPLAIN PIPELINE ")) {
+        return explainPipelineSQL(sql);
+      } else if (startsWithIgnoreCase(sql, "EXPLAIN ")) {
         return explainSQL(sql);
       } else if (startsWithIgnoreCase(sql, "LIST TABLES")
           || startsWithIgnoreCase(sql, "LIST SYSTEM TABLES")) {
@@ -1007,6 +1010,14 @@ public class XGStatement implements Statement {
 
   // used by CLI
   public String exportTranslation(final String table) throws SQLException {
+    final ClientWireProtocol.ExecuteExportResponse.Builder er =
+        (ClientWireProtocol.ExecuteExportResponse.Builder)
+            sendAndReceive(table, Request.RequestType.EXECUTE_EXPORT, 0, false, Optional.empty());
+    return er.getExportStatement();
+  }
+
+  // used by CLI
+  public String explainPipeline(final String table) throws SQLException {
     final ClientWireProtocol.ExecuteExportResponse.Builder er =
         (ClientWireProtocol.ExecuteExportResponse.Builder)
             sendAndReceive(table, Request.RequestType.EXECUTE_EXPORT, 0, false, Optional.empty());
@@ -2107,6 +2118,28 @@ public class XGStatement implements Statement {
     cols2Pos.put("translation", 0);
     pos2Cols.put(0, "translation");
     cols2Types.put("translation", "CHAR");
+    this.result.setCols2Pos(cols2Pos);
+    this.result.setPos2Cols(pos2Cols);
+    this.result.setCols2Types(cols2Types);
+
+    return this.result;
+  }
+
+  private ResultSet explainPipelineSQL(final String cmd) throws SQLException {
+    LOGGER.log(Level.INFO, "Enetered driver's explainPipeline");
+    final String explainPipelineStr = explainPipeline(cmd);
+    final ArrayList<Object> rs = new ArrayList<>();
+    final ArrayList<Object> row = new ArrayList<>();
+    row.add(explainPipelineStr);
+    rs.add(row);
+
+    this.result = this.conn.rs = new XGResultSet(this.conn, rs, this);
+    final Map<String, Integer> cols2Pos = new HashMap<String, Integer>();
+    final TreeMap<Integer, String> pos2Cols = new TreeMap<Integer, String>();
+    final Map<String, String> cols2Types = new HashMap<String, String>();
+    cols2Pos.put("pipeline", 0);
+    pos2Cols.put(0, "pipeline");
+    cols2Types.put("pipeline", "CHAR");
     this.result.setCols2Pos(cols2Pos);
     this.result.setPos2Cols(pos2Cols);
     this.result.setCols2Types(cols2Types);
