@@ -267,6 +267,8 @@ public class JDBCDriver implements Driver
 						{
 							doConnect = true;
 						} else {
+							conn.defaultSchema = seenConnections.get(conn).setSchema;
+							conn.setSchemaLocal(seenConnections.get(conn).getSchemaLocal());
 							conn.setServerVersion(seenConnections.get(conn).getServerVersion());
 						}
 					}
