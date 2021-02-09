@@ -612,6 +612,12 @@ public class XGStatement implements Statement
 			if (poolable)
 			{
 				timer = new Timer();
+				/*!
+				 * When the first connection is created, that connection will not have a server 
+				 * version and empty setSchema and default schema. It will copy that connection and 
+				 * fetch the server version. When that connection is returned to the pool, its reset method 
+				 * will set the server side connection to empty if we don't fix this here.
+				 */ 
 				if(conn.setSchema.equals("")){
 					LOGGER.log(Level.INFO, "This connection has an empty schema.");
 					conn.setSchema = conn.getSchema();
