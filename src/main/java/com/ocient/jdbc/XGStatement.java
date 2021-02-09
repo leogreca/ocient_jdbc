@@ -192,11 +192,12 @@ public class XGStatement implements Statement
 				{
 				}
 			}
-
+			LOGGER.log(Level.INFO, "newXGStatement returning a cached statement");
 			return retval;
 		}
 		else
 		{
+			LOGGER.log(Level.INFO, "newXGStatement returning a new statement");
 			return new XGStatement(conn, shouldRequestVersion);
 		}
 	}
@@ -235,11 +236,12 @@ public class XGStatement implements Statement
 			catch (final Exception e)
 			{
 			}
-
+			LOGGER.log(Level.INFO, "newXGStatement returning a cached statement");
 			return retval;
 		}
 		else
 		{
+			LOGGER.log(Level.INFO, "newXGStatement returning a new statement");
 			return new XGStatement(conn, force, oneShotForce);
 		}
 	}
@@ -290,11 +292,12 @@ public class XGStatement implements Statement
 			catch (final Exception e)
 			{
 			}
-
+			LOGGER.log(Level.INFO, "newXGStatement returning a cached statement");
 			return retval;
 		}
 		else
 		{
+			LOGGER.log(Level.INFO, "newXGStatement returning a new statement");
 			return new XGStatement(conn, type, concur, force, oneShotForce);
 		}
 	}
@@ -350,11 +353,12 @@ public class XGStatement implements Statement
 			catch (final Exception e)
 			{
 			}
-
+			LOGGER.log(Level.INFO, "newXGStatement returning a cached statement");
 			return retval;
 		}
 		else
 		{
+			LOGGER.log(Level.INFO, "newXGStatement returning a new statement");
 			return new XGStatement(conn, type, concur, force, oneShotForce);
 		}
 	}
@@ -608,6 +612,22 @@ public class XGStatement implements Statement
 			if (poolable)
 			{
 				timer = new Timer();
+				/*!
+				 * When the first connection is created, that connection will not have a server 
+				 * version and empty setSchema and default schema. It will copy that connection and 
+				 * fetch the server version. When that connection is returned to the pool, its reset method 
+				 * will set the server side connection to empty if we don't fix this here.
+				 */ 
+				if(conn.setSchema.equals("")){
+					LOGGER.log(Level.INFO, "This connection has an empty schema.");
+					conn.setSchema = conn.getSchema();
+					LOGGER.log(Level.INFO,String.format("After correcting incorrect schema. setSchema: %s." , conn.setSchema));
+				}
+				if(conn.defaultSchema.equals("")){
+					LOGGER.log(Level.INFO, "This connection has an empty default schema.");
+					conn.defaultSchema = conn.setSchema;
+					LOGGER.log(Level.INFO,String.format("After correcting incorrect default schema. defaultSchema: %s", conn.defaultSchema));
+				}
 				timer.schedule(new ReturnToCacheTask(this), 30 * 1000);
 			}
 			else

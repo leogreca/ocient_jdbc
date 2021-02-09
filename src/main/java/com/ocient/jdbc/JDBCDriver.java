@@ -265,8 +265,10 @@ public class JDBCDriver implements Driver
 					{
 						if (!seenConnections.containsKey(conn))
 						{
+							LOGGER.log(Level.INFO, "Driver generated a new connection");
 							doConnect = true;
 						} else {
+							LOGGER.log(Level.INFO, "Driver retrieved a cached connection");
 							conn.defaultSchema = seenConnections.get(conn).setSchema;
 							conn.setSchemaLocal(seenConnections.get(conn).getSchemaLocal());
 							conn.setServerVersion(seenConnections.get(conn).getServerVersion());
