@@ -3,6 +3,24 @@
 
 All our jdbc drivers are located {drivers_repo}[here]. 
 Below is the release notes for every driver version that has customer implication.
+
+//tag::compact[]
+== 1.78 (2021-2-5)
+
+New Features::
+
+ * Add SqlStates for LUP decomposition
+ * Add additional cache logging.
+ * Fix incorrect schema generated when first statements are created.
+
+//tag::compact[]
+== 1.77 (2021-2-5)
+
+New Features::
+
+ * Remove unecessary calls to fetchServerVersion
+ * Fix schema for pooled connections and statement.
+
 //tag::compact[]
 == 1.76 (2021-2-2)
 

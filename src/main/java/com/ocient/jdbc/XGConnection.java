@@ -1209,6 +1209,16 @@ public class XGConnection implements Connection
 		}
 	}
 
+	public String getSchemaLocal(){
+		LOGGER.log(Level.INFO, "Called getSchemaLocal()");
+		return setSchema;
+	}
+
+	public void setSchemaLocal(String newSchema){
+		LOGGER.log(Level.INFO, String.format("Called setSchemaLocal() to set new schema: %s", newSchema));
+		setSchema = newSchema;
+	}
+
 	private String getSchemaFromServer() throws Exception
 	{
 		// send request
@@ -2623,7 +2633,7 @@ public class XGConnection implements Connection
 	@Override
 	public void setSchema(final String schema) throws SQLException
 	{
-		LOGGER.log(Level.INFO, "Called setSchema()");
+		LOGGER.log(Level.INFO,String.format("Called setSchema() to set: %s", schema));
 		if (closed)
 		{
 			LOGGER.log(Level.WARNING, "setSchema() is throwing CALL_ON_CLOSED_OBJECT");
