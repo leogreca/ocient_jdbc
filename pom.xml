@@ -40,6 +40,8 @@
   </distributionManagement>
   <properties>
     <protoc>protoc</protoc>
+    <spotbugs-maven-plugin.version>4.2.0</spotbugs-maven-plugin.version>
+    <findsecbugs-plugin.version>1.10.1</findsecbugs-plugin.version>
   </properties>
   <dependencies>
     <dependency>
@@ -134,7 +136,35 @@
         </configuration>
       </plugin>
       <plugin>
-        <!-- Note this signing should appear before the gpg signing-->  
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.9.1</version>
+      </plugin>
+      <!-- UNCOMMENT ONCE SPOTBUGS REPORTS 0 BUGS, WILL CHECK DURING VERIFY PHASE -->
+      <!-- <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>${spotbugs-maven-plugin.version}</version>
+        <configuration>
+          <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
+          <plugins>
+            <plugin>
+              <groupId>com.h3xstream.findsecbugs</groupId>
+              <artifactId>findsecbugs-plugin</artifactId>
+              <version>${findsecbugs-plugin.version}</version>
+            </plugin>
+          </plugins>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin> -->
+      <plugin>
+        <!-- Note this signing should appear before the gpg signing-->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jarsigner-plugin</artifactId>
         <version>3.0.0</version>
@@ -188,6 +218,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.2.0</version>
         <executions>
           <execution>
             <id>attach-javadocs</id>
@@ -247,4 +278,28 @@
       </plugin>
     </plugins>
   </build>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>3.1.1</version>
+      </plugin>
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>${spotbugs-maven-plugin.version}</version>
+        <configuration>
+          <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
+          <plugins>
+            <plugin>
+              <groupId>com.h3xstream.findsecbugs</groupId>
+              <artifactId>findsecbugs-plugin</artifactId>
+              <version>${findsecbugs-plugin.version}</version>
+            </plugin>
+          </plugins>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
 </project>
