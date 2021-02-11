@@ -127,6 +127,8 @@ public class XGArray implements java.sql.Array
 				return Types.TIMESTAMP;
 			case 21:
 				return Types.TIME;
+			case 22:
+				return Types.OTHER;
 			default:
 				throw SQLStates.INVALID_COLUMN_TYPE.clone();
 		}
@@ -179,6 +181,8 @@ public class XGArray implements java.sql.Array
 				return "TIMESTAMP";
 			case 21:
 				return "TIME";
+			case 22:
+				return "TUPLE";
 			default:
 				throw SQLStates.INVALID_COLUMN_TYPE.clone();
 		}
@@ -271,6 +275,9 @@ public class XGArray implements java.sql.Array
 				break;
 			case 21:
 				cols2Types.put("array_value", "TIME");
+				break;
+			case 22:
+				cols2Types.put("array_value", "TUPLE");
 				break;
 			default:
 				throw SQLStates.INVALID_COLUMN_TYPE.clone();
@@ -368,6 +375,9 @@ public class XGArray implements java.sql.Array
 				break;
 			case 21:
 				cols2Types.put("array_value", "TIME");
+				break;
+			case 22:
+				cols2Types.put("array_value", "TUPLE");
 				break;
 			default:
 				throw SQLStates.INVALID_COLUMN_TYPE.clone();

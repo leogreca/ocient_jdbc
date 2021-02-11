@@ -96,6 +96,10 @@ public class XGResultSetMetaData implements ResultSetMetaData
 		{
 			return "com.ocient.jdbc.XGArray";
 		}
+		else if (type.equals("TUPLE"))
+		{
+			return "com.ocient.jdbc.XGTuple";
+		}
 		else if (type.equals("UUID"))
 		{
 			return "java.util.UUID";
@@ -202,6 +206,10 @@ public class XGResultSetMetaData implements ResultSetMetaData
 		{
 			return 17;
 		}
+		else if(type.equals("TUPLE"))
+		{
+			retval = 80;
+		}
 		else
 		{
 			LOGGER.log(Level.WARNING, "getColumnDisplaySize() is throwing UNKNOWN_DATA_TYPE");
@@ -305,6 +313,10 @@ public class XGResultSetMetaData implements ResultSetMetaData
 		{
 			return java.sql.Types.OTHER;
 		}
+		else if(type.equals("TUPLE"))
+		{
+			return java.sql.Types.OTHER;
+		}
 		else
 		{
 			LOGGER.log(Level.WARNING, "getColumnType() is throwing UNKNOWN_DATA_TYPE");
@@ -391,6 +403,10 @@ public class XGResultSetMetaData implements ResultSetMetaData
 			return 31;
 		}
 		else if (type.equals("ARRAY"))
+		{
+			return 128 * 1024;
+		}
+		else if (type.equals("TUPLE"))
 		{
 			return 128 * 1024;
 		}

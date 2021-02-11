@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.InetAddress;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.sql.Array;
@@ -2537,7 +2536,25 @@ public class XGResultSet implements ResultSet
 		throw new SQLFeatureNotSupportedException();
 	}
 
-	private Object getValueFromBuffer(final ByteBuffer bb, final byte type, int[] mutableOffset, Boolean allowArrays) throws SQLException, UnknownHostException
+	private XGTuple getTupleFromBuffer(final ByteBuffer bb, int[] mutableOffset) throws SQLException, java.net.UnknownHostException
+	{
+		final int numElements = bb.getInt(mutableOffset[0]);
+		mutableOffset[0] += 4;
+
+		ArrayList<Object> components = new ArrayList<Object>();
+		assert(numElements > 0);
+		for(int i = 0; i < numElements ; i++)
+		{
+			final byte type = bb.get(mutableOffset[0]);
+			mutableOffset[0]++;
+			boolean allowArrays = true;
+			components.add(getValueFromBuffer(bb, type, mutableOffset, allowArrays));
+		}
+
+		return new XGTuple(components);
+	}
+
+	private Object getValueFromBuffer(final ByteBuffer bb, final byte type, int[] mutableOffset, Boolean allowArrays) throws SQLException, java.net.UnknownHostException
 	{
 		int offset = mutableOffset[0];
 		Object retval = null;
@@ -2680,6 +2697,15 @@ public class XGResultSet implements ResultSet
 			time.setNanos((int) (nanos - seconds * 1000000000));
 			retval = time;
 			offset += 8;
+		}
+		else if (type == 22) //tuple
+		{
+			//use int[] as a mutable int to pass by reference
+			final int[] off = new int[1];
+			off[0] = offset;
+			final XGTuple tuple = getTupleFromBuffer(bb, off);
+			offset = off[0];
+			retval = tuple;
 		}
 		else
 		{
