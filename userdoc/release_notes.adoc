@@ -5,6 +5,18 @@ All our jdbc drivers are located {drivers_repo}[here].
 Below is the release notes for every driver version that has customer implication.
 
 //tag::compact[]
+== 1.81 (2021-2-12)
+
+New Features::
+
+ * Fix a compiler error with CLUSTER_NOT_FOUND error 
+
+== 1.80 (2021-2-12)
+
+New Features::
+
+ * Add CLUSTER_NOT_FOUND error
+
 == 1.79 (2021-2-11)
 
 New Features::
