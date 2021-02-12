@@ -1595,7 +1595,13 @@ public class CLI
 			explain(cmd);
 		}
 		else if (startsWithIgnoreCase(cmd, "CREATE") || startsWithIgnoreCase(cmd, "DROP") || startsWithIgnoreCase(cmd, "ALTER") || startsWithIgnoreCase(cmd, "TRUNCATE")
-			|| startsWithIgnoreCase(cmd, "SET PSO") || startsWithIgnoreCase(cmd, "GRANT") || startsWithIgnoreCase(cmd, "REVOKE") || startsWithIgnoreCase(cmd, "INVALIDATE STATS"))
+			|| startsWithIgnoreCase(cmd, "SET PSO") 
+			|| startsWithIgnoreCase(cmd, "SET MAXROWS") 
+			|| startsWithIgnoreCase(cmd, "SET MAXTIME") 
+			|| startsWithIgnoreCase(cmd, "SET MAXTEMPDISK") 
+			|| startsWithIgnoreCase(cmd, "SET CONCURRENCY") 
+			|| startsWithIgnoreCase(cmd, "SET PRIORITY") 
+			|| startsWithIgnoreCase(cmd, "GRANT") || startsWithIgnoreCase(cmd, "REVOKE") || startsWithIgnoreCase(cmd, "INVALIDATE STATS"))
 		{
 			update(cmd);
 		}
@@ -1634,10 +1640,6 @@ public class CLI
 		else if (startsWithIgnoreCase(cmd, "PLAN EXPLAIN"))
 		{
 			explainPlan(cmd);
-		}
-		else if (startsWithIgnoreCase(cmd, "SET MAXROWS"))
-		{
-			setMaxRows(cmd);
 		}
 		else if (startsWithIgnoreCase(cmd, "PLAN LIST"))
 		{
