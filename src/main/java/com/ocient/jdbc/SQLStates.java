@@ -246,6 +246,10 @@ public class SQLStates
 	private static int CREATE_TASK_FAILURE_CODE = -1005;
 	private static int TASK_ALREADY_IN_PROGRESS_ERROR_CODE = -1006;
 
+	// cluster related issues
+	private static int CLUSTER_NOT_FOUND_CODE = -1111;
+	private static int CLUSTER_ALREADY_EXISTS_CODE = -1112;
+
 	public static SQLStates INVALID_RESPONSE_TYPE = new SQLStates("Received a response from the server that was not ok, warning, or error", SYSTEM_ERROR, INVALID_RESPONSE_CODE);
 	public static SQLStates INVALID_COLUMN_TYPE = new SQLStates("Corruption of serialized result set", SYSTEM_ERROR, INVALID_COLUMN_CODE);
 	public static SQLStates MALFORMED_URL = new SQLStates("Malformed connection URL", UNABLE_TO_CONNECT, MALFORMED_URL_CODE);
@@ -288,6 +292,7 @@ public class SQLStates
 	public static SQLStates TABLE_ALREADY_EXISTS = new SQLStates("A table with that name exists", DUPLICATE_OBJECT, TABLE_ALREADY_EXISTS_CODE);
 	public static SQLStates VIEW_ALREADY_EXISTS = new SQLStates("A view with that name exists", DUPLICATE_OBJECT, VIEW_ALREADY_EXISTS_CODE);
 	public static SQLStates USER_ALREADY_EXISTS = new SQLStates("A user with that name exists", DUPLICATE_OBJECT, USER_ALREADY_EXISTS_CODE);
+	public static SQLStates CLUSTER_ALREADY_EXISTS = new SQLStates("A cluster with that name exists", DUPLICATE_OBJECT, CLUSTER_ALREADY_EXISTS_CODE);
 	public static SQLStates GROUP_ALREADY_EXISTS = new SQLStates("A group with that name exists", DUPLICATE_OBJECT, GROUP_ALREADY_EXISTS_CODE);
 	public static SQLStates CONNECTION_ALREADY_EXISTS = new SQLStates("The referenced connection already exists", DUPLICATE_OBJECT, CONNECTION_ALREADY_EXISTS_CODE);
 	public static SQLStates CONNECTION_NOT_FOUND = new SQLStates("The referenced connection does not exist", OBJECT_NOT_FOUND_STATE, CONNECTION_NOT_FOUND_CODE);
@@ -297,6 +302,7 @@ public class SQLStates
 	public static SQLStates STORAGE_SPACE_NOT_FOUND = new SQLStates("The referenced storage space does not exist", OBJECT_NOT_FOUND_STATE, STORAGE_SPACE_NOT_FOUND_CODE);
 	public static SQLStates VIEW_NOT_FOUND = new SQLStates("The referenced view does not exist", OBJECT_NOT_FOUND_STATE, VIEW_NOT_FOUND_CODE);
 	public static SQLStates USER_NOT_FOUND = new SQLStates("The referenced user does not exist", OBJECT_NOT_FOUND_STATE, USER_NOT_FOUND_CODE);
+	public static SQLStates CLUSTER_NOT_FOUND = new SQLStates("The referenced cluster does not exist", OBJECT_NOT_FOUND_STATE, CLUSTER_NOT_FOUND_CODE);
 	public static SQLStates GROUP_NOT_FOUND = new SQLStates("The referenced group does not exist", OBJECT_NOT_FOUND_STATE, GROUP_NOT_FOUND_CODE);
 	public static SQLStates USER_NOT_IN_GROUP = new SQLStates("The user is not in the specified group", OBJECT_NOT_FOUND_STATE, USER_NOT_IN_GROUP_CODE);
 
@@ -401,7 +407,8 @@ public class SQLStates
 	public static SQLStates PRIVILEGE_ALREADY_POSSESSED = new SQLStates("The privilege target already has the privilege.", DUPLICATE_OBJECT, PRIVILEGE_ALREADY_POSSESSED_CODE);
 	public static SQLStates PRIVILEGE_NOT_POSSESSED = new SQLStates("The privilege target does not have that privilege.", OBJECT_NOT_FOUND_STATE, PRIVILEGE_NOT_POSSESSED_CODE);
 	public static SQLStates NO_GRANT_AUTH = new SQLStates("The user does not have the authority to grant this privilege.", AUTH_FAILURE, NO_GRANT_AUTH_CODE);
-	public static SQLStates NOT_AUTHORIZED = new SQLStates("Not authorized to take this action", AUTH_FAILURE, NOT_AUTHORIZED_CODE);
+
+	public static SQLStates NODE_NOT_FOUND = new SQLStates("Cluster not found", OBJECT_NOT_FOUND_STATE, CLUSTER_NOT_FOUND_CODE);
 	public static SQLStates NODE_NOT_FOUND = new SQLStates("Node not found", OBJECT_NOT_FOUND_STATE, NODE_NOT_FOUND_CODE);
 	public static SQLStates TASK_ALREADY_IN_PROGRESS = new SQLStates("Task already in progress", DUPLICATE_OBJECT, TASK_ALREADY_IN_PROGRESS_ERROR_CODE);
 	public static SQLStates ID_NOT_FOUND = new SQLStates("The provided object was not found", OBJECT_NOT_FOUND_STATE, ID_NOT_FOUND_CODE);
