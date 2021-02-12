@@ -5,6 +5,14 @@ All our jdbc drivers are located {drivers_repo}[here].
 Below is the release notes for every driver version that has customer implication.
 
 //tag::compact[]
+== 1.79 (2021-2-11)
+
+New Features::
+
+ * Add spotbugs
+ * Add support for EXPLAIN PIPELINE to CLI
+
+//tag::compact[]
 == 1.78 (2021-2-5)
 
 New Features::

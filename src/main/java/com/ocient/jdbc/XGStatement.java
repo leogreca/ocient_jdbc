@@ -725,7 +725,7 @@ public class XGStatement implements Statement
 				|| sql.toUpperCase().startsWith("LIST INDEXES ") || sql.toUpperCase().startsWith("GET SCHEMA") || sql.toUpperCase().startsWith("DESCRIBE VIEW ")
 				|| sql.toUpperCase().startsWith("DESCRIBE TABLE ") || sql.toUpperCase().startsWith("PLAN EXECUTE ") || sql.toUpperCase().startsWith("PLAN EXPLAIN ")
 				|| sql.toUpperCase().startsWith("LIST ALL QUERIES") || startsWithIgnoreCase(sql, "LIST ALL COMPLETED QUERIES") || sql.toUpperCase().startsWith("EXPORT TABLE ")
-				|| sql.toUpperCase().startsWith("EXPORT TRANSLATION ") || sql.toUpperCase().startsWith("LIST TABLE PRIVILEGES"))
+				|| sql.toUpperCase().startsWith("EXPORT TRANSLATION ") || sql.toUpperCase().startsWith("LIST TABLE PRIVILEGES") || sql.toUpperCase().startsWith("EXPLAIN PIPELINE "))
 			{
 				result = (XGResultSet) executeQuery(sql);
 				return true;
@@ -862,7 +862,11 @@ public class XGStatement implements Statement
 
 		try
 		{
-			if (startsWithIgnoreCase(sql, "EXPLAIN "))
+			// recognize explain pipeline statement not as explain
+			if (startsWithIgnoreCase(sql, "EXPLAIN PIPELINE ")) {
+		        return explainPipelineSQL(sql);
+       		} 
+			else if (startsWithIgnoreCase(sql, "EXPLAIN "))
 			{
 				return explainSQL(sql);
 			}
@@ -1237,6 +1241,37 @@ public class XGStatement implements Statement
 		result.setCols2Types(cols2Types);
 
 		return result;
+	}
+
+	// used by CLI
+	public String explainPipeline(final String table) throws SQLException
+	{
+		final ClientWireProtocol.ExecuteExportResponse.Builder er = (ClientWireProtocol.ExecuteExportResponse.Builder) sendAndReceive(table, Request.RequestType.EXECUTE_EXPORT, 0, false,
+			Optional.empty());
+		return er.getExportStatement();
+	}
+
+	private ResultSet explainPipelineSQL(final String cmd) throws SQLException
+	{
+		LOGGER.log(Level.INFO, "Enetered driver's explainPipeline");
+		final String explainPipelineStr = explainPipeline(cmd);
+		final ArrayList<Object> rs = new ArrayList<>();
+		final ArrayList<Object> row = new ArrayList<>();
+		row.add(explainPipelineStr);
+		rs.add(row);
+
+		this.result = this.conn.rs = new XGResultSet(this.conn, rs, this);
+		final Map<String, Integer> cols2Pos = new HashMap<String, Integer>();
+		final TreeMap<Integer, String> pos2Cols = new TreeMap<Integer, String>();
+		final Map<String, String> cols2Types = new HashMap<String, String>();
+		cols2Pos.put("pipeline", 0);
+		pos2Cols.put(0, "pipeline");
+		cols2Types.put("pipeline", "CHAR");
+		this.result.setCols2Pos(cols2Pos);
+		this.result.setPos2Cols(pos2Cols);
+		this.result.setCols2Types(cols2Types);
+
+		return this.result;
 	}
 
 	private ClientWireProtocol.FetchSystemMetadataResponse.Builder fetchSystemMetadata(final FetchSystemMetadata.SystemMetadataCall call, final String schema, final String table, final String col,
