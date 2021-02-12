@@ -408,7 +408,6 @@ public class SQLStates
 	public static SQLStates PRIVILEGE_NOT_POSSESSED = new SQLStates("The privilege target does not have that privilege.", OBJECT_NOT_FOUND_STATE, PRIVILEGE_NOT_POSSESSED_CODE);
 	public static SQLStates NO_GRANT_AUTH = new SQLStates("The user does not have the authority to grant this privilege.", AUTH_FAILURE, NO_GRANT_AUTH_CODE);
 
-	public static SQLStates NODE_NOT_FOUND = new SQLStates("Cluster not found", OBJECT_NOT_FOUND_STATE, CLUSTER_NOT_FOUND_CODE);
 	public static SQLStates NODE_NOT_FOUND = new SQLStates("Node not found", OBJECT_NOT_FOUND_STATE, NODE_NOT_FOUND_CODE);
 	public static SQLStates TASK_ALREADY_IN_PROGRESS = new SQLStates("Task already in progress", DUPLICATE_OBJECT, TASK_ALREADY_IN_PROGRESS_ERROR_CODE);
 	public static SQLStates ID_NOT_FOUND = new SQLStates("The provided object was not found", OBJECT_NOT_FOUND_STATE, ID_NOT_FOUND_CODE);
