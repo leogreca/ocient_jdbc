@@ -9,7 +9,7 @@ import java.util.TreeMap;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class XGTuple implements Iterable<Object> {
+public class XGTuple {
 
     private ArrayList<Object> m_elements;
     private ArrayList<String> m_types;
@@ -28,17 +28,17 @@ public class XGTuple implements Iterable<Object> {
     }
 
     public ResultSet getResultSet() throws SQLException
-	{
+    {
         final ArrayList<Object> alo = new ArrayList<>();
         final ArrayList<Object> row = new ArrayList<>();
         
         final Map<String, Integer> cols2Pos = new HashMap<>();
-		final TreeMap<Integer, String> pos2Cols = new TreeMap<>();
-		final Map<String, String> cols2Types = new HashMap<>();
+        final TreeMap<Integer, String> pos2Cols = new TreeMap<>();
+        final Map<String, String> cols2Types = new HashMap<>();
 
-		int i = 0;
-		for (final Object o : m_elements)
-		{
+        int i = 0;
+        for (final Object o : m_elements)
+        {
             row.add(o);
             //Tuples are 1 indexed, rows are 0 indexed
             cols2Pos.put(String.valueOf(i + 1), i);
@@ -50,16 +50,16 @@ public class XGTuple implements Iterable<Object> {
 
         final XGResultSet retval = new XGResultSet(m_conn, alo, m_statement);
         
-		retval.setCols2Pos(cols2Pos);
-		retval.setPos2Cols(pos2Cols);
-		retval.setCols2Types(cols2Types);
-		return retval;
-	}
+        retval.setCols2Pos(cols2Pos);
+        retval.setPos2Cols(pos2Cols);
+        retval.setCols2Types(cols2Types);
+        return retval;
+    }
 
     public final Object getObject(int columnIndex)  throws SQLException {
         if (columnIndex < 1 || columnIndex > m_elements.size())
-		{
-			throw SQLStates.COLUMN_NOT_FOUND.clone();
+        {
+            throw SQLStates.COLUMN_NOT_FOUND.clone();
         }
 
         return m_elements.get(columnIndex - 1);
@@ -67,25 +67,25 @@ public class XGTuple implements Iterable<Object> {
 
     public final <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
         if (columnIndex < 1 || columnIndex > m_elements.size())
-		{
-			throw SQLStates.COLUMN_NOT_FOUND.clone();
+        {
+            throw SQLStates.COLUMN_NOT_FOUND.clone();
         }
         
         Object o = m_elements.get(columnIndex - 1);
         if (type.getCanonicalName().equals("java.lang.String"))
-		{
-			return (T) o.toString();
-		}
+        {
+            return (T) o.toString();
+        }
 
-		try
-		{
-			final Constructor<?> c = type.getConstructor(o.getClass());
-			return (T) c.newInstance(o);
-		}
-		catch (final Exception e)
-		{
-			throw SQLStates.newGenericException(e);
-		}
+        try
+        {
+            final Constructor<?> c = type.getConstructor(o.getClass());
+            return (T) c.newInstance(o);
+        }
+        catch (final Exception e)
+        {
+            throw SQLStates.newGenericException(e);
+        }
     }
 
     public final int size() {
