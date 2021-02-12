@@ -2,21 +2,24 @@ package com.ocient.jdbc;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.stream.IntStream;
+
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class XGTuple {
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+public class XGTuple implements java.sql.Struct {
+
+    private static final Logger LOGGER = Logger.getLogger("com.ocient.jdbc");
     private ArrayList<Object> m_elements;
     private ArrayList<String> m_types;
     private XGConnection m_conn;
-    private XGStatement m_statement;
 
-    public XGTuple(ArrayList<Object> elements, ArrayList<String> types, final XGConnection conn, final XGStatement stmt) {
+    XGTuple(ArrayList<Object> elements, ArrayList<String> types, final XGConnection conn, final XGStatement stmt) {
         if(elements == null)
         {
             throw new IllegalArgumentException("tuple with null elements");
@@ -24,47 +27,74 @@ public class XGTuple {
         m_elements = elements;
         m_types = types;
         m_conn = conn;
-        m_statement = stmt;
     }
 
-    public ResultSet getResultSet() throws SQLException
-    {
-        final ArrayList<Object> alo = new ArrayList<>();
-        final ArrayList<Object> row = new ArrayList<>();
-        
-        final Map<String, Integer> cols2Pos = new HashMap<>();
-        final TreeMap<Integer, String> pos2Cols = new TreeMap<>();
-        final Map<String, String> cols2Types = new HashMap<>();
+    @Override
+    public String getSQLTypeName() throws SQLException {
+        //would have to loop through children return something like TUPLE(INT,TUPLE(ARRAY(INT)))
+        //would be easy to return something like TUPLE(INT,TUPLE) instead but that seems weird
+        return "TUPLE";
+    }
 
-        int i = 0;
-        for (final Object o : m_elements)
+    @Override
+    public Object[] getAttributes() throws SQLException {
+        return getAttributes(m_conn.getTypeMap());
+    }
+
+    @Override
+    public Object[] getAttributes(Map<String, Class<?>> map) throws SQLException {
+        Object[] objects = new Object[m_elements.size()];
+        for(int i = 0; i < m_elements.size(); i++)
         {
-            row.add(o);
-            //Tuples are 1 indexed, rows are 0 indexed
-            cols2Pos.put(String.valueOf(i + 1), i);
-            pos2Cols.put(i, String.valueOf(i + 1));
-            cols2Types.put(String.valueOf(i), m_types.get(i));
-            i++;
+            //colIndex is 1 indexed
+            objects[i] = getObject(i + 1);
         }
-        alo.add(row);
-
-        final XGResultSet retval = new XGResultSet(m_conn, alo, m_statement);
-        
-        retval.setCols2Pos(cols2Pos);
-        retval.setPos2Cols(pos2Cols);
-        retval.setCols2Types(cols2Types);
-        return retval;
+        return objects;
     }
-
-    public final Object getObject(int columnIndex)  throws SQLException {
+    
+    
+    //Some utility methods that are on result set
+    
+    //colIndex is 1 indexed
+    public final Object getObject(int columnIndex, Map<String, Class<?>> map)  throws SQLException {
         if (columnIndex < 1 || columnIndex > m_elements.size())
         {
             throw SQLStates.COLUMN_NOT_FOUND.clone();
         }
 
-        return m_elements.get(columnIndex - 1);
+        Object col = m_elements.get(columnIndex - 1);
+
+        final Class<?> clazz = map.get(m_types.get(columnIndex - 1));
+
+		if (clazz == null)
+		{
+			return col;
+		}
+
+		if (clazz.getCanonicalName().equals("java.lang.String"))
+		{
+			return col.toString();
+		}
+
+		try
+		{
+			final Constructor<?> c = clazz.getConstructor(col.getClass());
+			return c.newInstance(col);
+		}
+		catch (final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getObject() with message %s", e.toString(), e.getMessage()));
+			throw SQLStates.newGenericException(e);
+		}
+
     }
 
+    //colIndex is 1 indexed
+    public final Object getObject(int columnIndex)  throws SQLException {
+        return getObject(columnIndex, m_conn.getTypeMap());
+    }
+
+    //colIndex is 1 indexed
     public final <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
         if (columnIndex < 1 || columnIndex > m_elements.size())
         {

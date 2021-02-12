@@ -315,7 +315,7 @@ public class XGResultSetMetaData implements ResultSetMetaData
 		}
 		else if(type.equals("TUPLE"))
 		{
-			return java.sql.Types.OTHER;
+			return java.sql.Types.STRUCT;
 		}
 		else
 		{
