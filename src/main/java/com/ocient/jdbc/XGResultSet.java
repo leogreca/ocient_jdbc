@@ -2542,6 +2542,7 @@ public class XGResultSet implements ResultSet
 		mutableOffset[0] += 4;
 
 		ArrayList<Object> components = new ArrayList<Object>();
+		ArrayList<String> innerTypeNames = new ArrayList<String>();
 		assert(numElements > 0);
 		for(int i = 0; i < numElements ; i++)
 		{
@@ -2549,9 +2550,10 @@ public class XGResultSet implements ResultSet
 			mutableOffset[0]++;
 			boolean allowArrays = true;
 			components.add(getValueFromBuffer(bb, type, mutableOffset, allowArrays));
+			innerTypeNames.add(XGResultSetMetaData.type2Name(type));
 		}
 
-		return new XGTuple(components);
+		return new XGTuple(components, innerTypeNames, conn, stmt);
 	}
 
 	private Object getValueFromBuffer(final ByteBuffer bb, final byte type, int[] mutableOffset, Boolean allowArrays) throws SQLException, java.net.UnknownHostException

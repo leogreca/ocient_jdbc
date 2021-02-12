@@ -1,31 +1,62 @@
 package com.ocient.jdbc;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class XGTuple implements Iterable<Object> {
 
     private ArrayList<Object> m_elements;
+    private ArrayList<String> m_types;
+    private XGConnection m_conn;
+    private XGStatement m_statement;
 
-    public XGTuple(ArrayList<Object> elements) {
+    public XGTuple(ArrayList<Object> elements, ArrayList<String> types, final XGConnection conn, final XGStatement stmt) {
         if(elements == null)
         {
             throw new IllegalArgumentException("tuple with null elements");
         }
         m_elements = elements;
+        m_types = types;
+        m_conn = conn;
+        m_statement = stmt;
     }
 
-    public XGTuple(XGTuple toCopy) {
-        if(toCopy == null || toCopy.m_elements == null)
-        {
-            throw new IllegalArgumentException("tuple with null elements");
+    public ResultSet getResultSet() throws SQLException
+	{
+        final ArrayList<Object> alo = new ArrayList<>();
+        final ArrayList<Object> row = new ArrayList<>();
+        
+        final Map<String, Integer> cols2Pos = new HashMap<>();
+		final TreeMap<Integer, String> pos2Cols = new TreeMap<>();
+		final Map<String, String> cols2Types = new HashMap<>();
+
+		int i = 0;
+		for (final Object o : m_elements)
+		{
+            row.add(o);
+            //Tuples are 1 indexed, rows are 0 indexed
+            cols2Pos.put(String.valueOf(i + 1), i);
+            pos2Cols.put(i, String.valueOf(i + 1));
+            cols2Types.put(String.valueOf(i), m_types.get(i));
+            i++;
         }
-        m_elements = toCopy.m_elements;
-    }
+        alo.add(row);
 
-    public final Object get(int columnIndex)  throws SQLException {
+        final XGResultSet retval = new XGResultSet(m_conn, alo, m_statement);
+        
+		retval.setCols2Pos(cols2Pos);
+		retval.setPos2Cols(pos2Cols);
+		retval.setCols2Types(cols2Types);
+		return retval;
+	}
+
+    public final Object getObject(int columnIndex)  throws SQLException {
         if (columnIndex < 1 || columnIndex > m_elements.size())
 		{
 			throw SQLStates.COLUMN_NOT_FOUND.clone();
@@ -59,11 +90,6 @@ public class XGTuple implements Iterable<Object> {
 
     public final int size() {
         return m_elements.size();
-    }
-
-    @Override
-    public Iterator<Object> iterator() {
-        return m_elements.iterator();
     }
 
     @Override

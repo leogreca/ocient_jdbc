@@ -547,4 +547,57 @@ public class XGResultSetMetaData implements ResultSetMetaData
 		LOGGER.log(Level.WARNING, "unwrap() was called, which is not supported");
 		throw new SQLFeatureNotSupportedException();
 	}
+
+	static String type2Name(byte type) throws SQLException
+	{
+		switch (type)
+		{
+			case 1:
+				return "INTEGER";
+			case 2:
+				return "BIGINT";
+			case 3:
+				return "FLOAT";
+			case 4:
+				return "DOUBLE";
+			case 5:
+				return "VARCHAR";
+			case 6:
+				return "TIMESTAMP";
+			case 7:
+				return "NULL";
+			case 8:
+				return "BOOLEAN";
+			case 9:
+				return "VARBINARY";
+			case 10:
+				return "BYTE";
+			case 11:
+				return "SMALLINT";
+			case 12:
+				return "TIME";
+			case 13:
+				return "DECIMAL";
+			case 14:
+				return "ARRAY";
+			case 15:
+				return "UUID";
+			case 16:
+				return "ST_POINT";
+			case 17:
+				return "IP";
+			case 18:
+				return "IPV4";
+			case 19:
+				return "DATE";
+			case 20:
+				return "TIMESTAMP";
+			case 21:
+				return "TIME";
+			case 22:
+				return "TUPLE";
+			default:
+				throw SQLStates.INVALID_COLUMN_TYPE.clone();
+		}
+	}
 }
