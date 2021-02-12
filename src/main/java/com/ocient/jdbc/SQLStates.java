@@ -302,6 +302,7 @@ public class SQLStates
 	public static SQLStates STORAGE_SPACE_NOT_FOUND = new SQLStates("The referenced storage space does not exist", OBJECT_NOT_FOUND_STATE, STORAGE_SPACE_NOT_FOUND_CODE);
 	public static SQLStates VIEW_NOT_FOUND = new SQLStates("The referenced view does not exist", OBJECT_NOT_FOUND_STATE, VIEW_NOT_FOUND_CODE);
 	public static SQLStates USER_NOT_FOUND = new SQLStates("The referenced user does not exist", OBJECT_NOT_FOUND_STATE, USER_NOT_FOUND_CODE);
+	public static SQLStates CLUSTER_NOT_FOUND = new SQLStates("The referenced cluster does not exist", OBJECT_NOT_FOUND_STATE, CLUSTER_NOT_FOUND_CODE);
 	public static SQLStates GROUP_NOT_FOUND = new SQLStates("The referenced group does not exist", OBJECT_NOT_FOUND_STATE, GROUP_NOT_FOUND_CODE);
 	public static SQLStates USER_NOT_IN_GROUP = new SQLStates("The user is not in the specified group", OBJECT_NOT_FOUND_STATE, USER_NOT_IN_GROUP_CODE);
 
@@ -406,7 +407,7 @@ public class SQLStates
 	public static SQLStates PRIVILEGE_ALREADY_POSSESSED = new SQLStates("The privilege target already has the privilege.", DUPLICATE_OBJECT, PRIVILEGE_ALREADY_POSSESSED_CODE);
 	public static SQLStates PRIVILEGE_NOT_POSSESSED = new SQLStates("The privilege target does not have that privilege.", OBJECT_NOT_FOUND_STATE, PRIVILEGE_NOT_POSSESSED_CODE);
 	public static SQLStates NO_GRANT_AUTH = new SQLStates("The user does not have the authority to grant this privilege.", AUTH_FAILURE, NO_GRANT_AUTH_CODE);
-	public static SQLStates NOT_AUTHORIZED = new SQLStates("Not authorized to take this action", AUTH_FAILURE, NOT_AUTHORIZED_CODE);
+
 	public static SQLStates NODE_NOT_FOUND = new SQLStates("Cluster not found", OBJECT_NOT_FOUND_STATE, CLUSTER_NOT_FOUND_CODE);
 	public static SQLStates NODE_NOT_FOUND = new SQLStates("Node not found", OBJECT_NOT_FOUND_STATE, NODE_NOT_FOUND_CODE);
 	public static SQLStates TASK_ALREADY_IN_PROGRESS = new SQLStates("Task already in progress", DUPLICATE_OBJECT, TASK_ALREADY_IN_PROGRESS_ERROR_CODE);
