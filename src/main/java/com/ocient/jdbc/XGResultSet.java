@@ -486,7 +486,7 @@ public class XGResultSet implements ResultSet
 				offset[0]++;
 				assert t == type || t == 7; // Array type or NULL
 				Boolean allowArrays = false;
-				retval.add(getValueFromBuffer(bb, type, offset, allowArrays), i);
+				retval.add(getValueFromBuffer(bb, t, offset, allowArrays), i);
 			}
 		}
 
