@@ -1787,7 +1787,6 @@ public class CLI
 	{
 		long start = 0;
 		long end = 0;
-		System.out.println(String.format("Timmy debug: in select %s", cmd));
 		if (!isConnected())
 		{
 			System.out.println("No database connection exists");
