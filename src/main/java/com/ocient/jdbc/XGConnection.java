@@ -430,8 +430,8 @@ public class XGConnection implements Connection
 			ResponseType rType = response.getType();
 			processResponseType(rType, response);
 			final ByteString ivString = ccr.getIv();
-			byte[] key = new byte[256];
-			byte[] macKey = new byte[256];
+			byte[] key;
+			byte[] macKey;
 			String myPubKey;
 
 			try
@@ -471,6 +471,11 @@ public class XGConnection implements Connection
 
 				final PublicKey clientPub = kp.getPublic();
 				myPubKey = "-----BEGIN PUBLIC KEY-----\n" + Base64.getMimeEncoder().encodeToString(clientPub.getEncoded()) + "\n-----END PUBLIC KEY-----\n";
+			}
+			catch(RuntimeException e)
+			{
+				LOGGER.log(Level.WARNING, String.format("Exception %s occurred during handshake with message %s", e.toString(), e.getMessage()));
+				throw e;
 			}
 			catch (final Exception e)
 			{
@@ -615,12 +620,17 @@ public class XGConnection implements Connection
 				// We have a lot of dangerous circular function calls.
 				// If we were redirected, then we already have the server version. We need to
 				// return here.
-				if (getVersion() != "")
+				if (!getVersion().equals(""))
 				{
 					LOGGER.log(Level.WARNING, String.format("Returning in redirect because we were redirected with address: %s", serverVersion));
 					return;
 				}
 			}
+		}
+		catch(RuntimeException e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Runtime Exception %s occurred during handshake with message %s", e.toString(), e.getMessage()));
+			throw e;
 		}
 		catch (final Exception e)
 		{
@@ -640,12 +650,12 @@ public class XGConnection implements Connection
 
 		if (shouldRequestVersion)
 		{
-			if (serverVersion == "")
+			if (serverVersion.equals(""))
 			{
 				fetchServerVersion();
 			}
 		}
-		LOGGER.log(Level.INFO, "Handshake Fiinished");
+		LOGGER.log(Level.INFO, "Handshake Finished");
 	}
 
 	@Override
@@ -1833,6 +1843,7 @@ public class XGConnection implements Connection
 					if (handshakeException instanceof SQLException)
 					{
 						retVal = (SQLException) handshakeException;
+						LOGGER.log(Level.WARNING, String.format("Handshake exception %s occurred in reconnect() with message %s", retVal.toString(), retVal.getMessage()));
 					}
 				}
 				// reconnect failed so we are no longer connected
@@ -1905,6 +1916,7 @@ public class XGConnection implements Connection
 					if (handshakeException instanceof SQLException)
 					{
 						retVal = (SQLException) handshakeException;
+						LOGGER.log(Level.WARNING, String.format("Handshake exception %s occurred in reconnect() with message %s", retVal.toString(), retVal.getMessage()));
 					}
 				}
 				// reconnect failed so we are no longer connected

@@ -183,7 +183,7 @@ public class XGStatement implements Statement
 			{
 				try
 				{
-					if (conn.serverVersion == "")
+					if (conn.serverVersion.equals(""))
 					{
 						conn.fetchServerVersion();
 					}
@@ -228,7 +228,7 @@ public class XGStatement implements Statement
 		{
 			try
 			{
-				if (conn.serverVersion == "")
+				if (conn.serverVersion.equals(""))
 				{
 					conn.fetchServerVersion();
 				}
@@ -284,7 +284,7 @@ public class XGStatement implements Statement
 		{
 			try
 			{
-				if (conn.serverVersion == "")
+				if (conn.serverVersion.equals(""))
 				{
 					conn.fetchServerVersion();
 				}
@@ -345,7 +345,7 @@ public class XGStatement implements Statement
 		{
 			try
 			{
-				if (conn.serverVersion == "")
+				if (conn.serverVersion.equals(""))
 				{
 					conn.fetchServerVersion();
 				}
@@ -568,7 +568,7 @@ public class XGStatement implements Statement
 		{
 			throw SQLStates.SYNTAX_ERROR.cloneAndSpecify(String.format("Invalid uuid string: %s", uuid));
 		}
-		final ClientWireProtocol.CancelQueryResponse.Builder er = (ClientWireProtocol.CancelQueryResponse.Builder) sendAndReceive(uuid, Request.RequestType.CANCEL_QUERY, 0, false, Optional.empty());
+		sendAndReceive(uuid, Request.RequestType.CANCEL_QUERY, 0, false, Optional.empty());
 	}
 
 	@Override
@@ -725,7 +725,7 @@ public class XGStatement implements Statement
 				|| sql.toUpperCase().startsWith("LIST INDEXES ") || sql.toUpperCase().startsWith("GET SCHEMA") || sql.toUpperCase().startsWith("DESCRIBE VIEW ")
 				|| sql.toUpperCase().startsWith("DESCRIBE TABLE ") || sql.toUpperCase().startsWith("PLAN EXECUTE ") || sql.toUpperCase().startsWith("PLAN EXPLAIN ")
 				|| sql.toUpperCase().startsWith("LIST ALL QUERIES") || startsWithIgnoreCase(sql, "LIST ALL COMPLETED QUERIES") || sql.toUpperCase().startsWith("EXPORT TABLE ")
-				|| sql.toUpperCase().startsWith("EXPORT TRANSLATION ") || sql.toUpperCase().startsWith("LIST TABLE PRIVILEGES") || sql.toUpperCase().startsWith("EXPLAIN PIPELINE "))
+				|| sql.toUpperCase().startsWith("EXPORT TRANSLATION ") || sql.toUpperCase().startsWith("LIST TABLE PRIVILEGES"))
 			{
 				result = (XGResultSet) executeQuery(sql);
 				return true;
@@ -1750,7 +1750,7 @@ public class XGStatement implements Statement
 		{
 			throw SQLStates.SYNTAX_ERROR.cloneAndSpecify(String.format("Invalid uuid string: %s", uuid));
 		}
-		final ClientWireProtocol.KillQueryResponse.Builder er = (ClientWireProtocol.KillQueryResponse.Builder) sendAndReceive(uuid, Request.RequestType.KILL_QUERY, 0, false, Optional.empty());
+		sendAndReceive(uuid, Request.RequestType.KILL_QUERY, 0, false, Optional.empty());
 	}
 
 	private ResultSet listAllCompletedQueries() throws SQLException

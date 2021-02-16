@@ -5,24 +5,34 @@ All our jdbc drivers are located {drivers_repo}[here].
 Below is the release notes for every driver version that has customer implication.
 
 //tag::compact[]
+== 1.83 (2021-2-15)
+
+New Features::
+
+ * Fixed a bunch of OWASP bugs.
+
+//tag::compact[]
 == 1.82 (2021-2-12)
 
 New Features::
 
  * Add CLI support for SET MAXROWS, PRIORITY, CONCURRENCY, MAXTIME, and MAXTEMPDISK
 
+//tag::compact[]
 == 1.81 (2021-2-12)
 
 New Features::
 
  * Fix a compiler error with CLUSTER_NOT_FOUND error 
 
+//tag::compact[]
 == 1.80 (2021-2-12)
 
 New Features::
 
  * Add CLUSTER_NOT_FOUND error
 
+//tag::compact[]
 == 1.79 (2021-2-11)
 
 New Features::

@@ -4,9 +4,14 @@ import java.io.BufferedReader;
 import java.io.Console;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.Writer;
+import java.nio.charset.Charset; 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -260,7 +265,10 @@ public class CLI
 		{
 			try
 			{
-				rs.close();
+				if(rs != null)
+				{
+					rs.close();
+				}
 			}
 			catch (final Exception f)
 			{
@@ -332,7 +340,10 @@ public class CLI
 		{
 			try
 			{
-				rs.close();
+				if(rs != null)
+				{
+					rs.close();
+				}
 			}
 			catch (final Exception f)
 			{
@@ -370,7 +381,6 @@ public class CLI
 		}
 
 		ResultSet rs = null;
-		final String plan = cmd.substring("PLAN EXECUTE ".length()).trim();
 
 		try
 		{
@@ -400,7 +410,10 @@ public class CLI
 		{
 			try
 			{
-				rs.close();
+				if(rs != null)
+				{
+					rs.close();
+				}
 			}
 			catch (final Exception f)
 			{
@@ -447,7 +460,10 @@ public class CLI
 		{
 			try
 			{
-				rs.close();
+				if(rs != null)
+				{
+					rs.close();
+				}
 			}
 			catch (final Exception f)
 			{
@@ -530,7 +546,10 @@ public class CLI
 		{
 			try
 			{
-				rs.close();
+				if(rs != null)
+				{
+					rs.close();
+				}
 			}
 			catch (final Exception f)
 			{
@@ -601,7 +620,10 @@ public class CLI
 			printTime(start, end);
 		} catch (final Exception e) {
 			try {
-				rs.close();
+				if(rs != null)
+				{
+					rs.close();
+				}
 			} catch (final Exception f) {
 			}
 			System.out.println("Error: " + e.getMessage());
@@ -662,7 +684,10 @@ public class CLI
 			e.printStackTrace();
 			try
 			{
-				rs.close();
+				if(rs != null)
+				{
+					rs.close();
+				}
 			}
 			catch (final Exception f)
 			{
@@ -757,7 +782,10 @@ public class CLI
 		{
 			try
 			{
-				rs.close();
+				if(rs != null)
+				{
+					rs.close();
+				}
 			}
 			catch (final Exception f)
 			{
@@ -802,7 +830,10 @@ public class CLI
 		{
 			try
 			{
-				rs.close();
+				if(rs != null)
+				{
+					rs.close();
+				}
 			}
 			catch (final Exception f)
 			{
@@ -905,7 +936,10 @@ public class CLI
 		{
 			try
 			{
-				rs.close();
+				if(rs != null)
+				{
+					rs.close();
+				}
 			}
 			catch (final Exception f)
 			{
@@ -990,7 +1024,10 @@ public class CLI
 		{
 			try
 			{
-				rs.close();
+				if(rs != null)
+				{
+					rs.close();
+				}
 			}
 			catch (final Exception f)
 			{
@@ -1014,7 +1051,6 @@ public class CLI
 
 		try
 		{
-			final DatabaseMetaData dbmd = conn.getMetaData();
 			final Matcher m = isSystemTables ? listSystemTablesSyntax.matcher(cmd) : listTablesSyntax.matcher(cmd);
 			if (!m.matches())
 			{
@@ -1069,7 +1105,10 @@ public class CLI
 		{
 			try
 			{
-				rs.close();
+				if(rs != null)
+				{
+					rs.close();
+				}
 			}
 			catch (final Exception f)
 			{
@@ -1149,7 +1188,10 @@ public class CLI
 		{
 			try
 			{
-				rs.close();
+				if(rs != null)
+				{
+					rs.close();
+				}
 			}
 			catch (final Exception f)
 			{
@@ -1326,84 +1368,92 @@ public class CLI
 
 	private static void outputResultSet(final ResultSet rs, final ResultSetMetaData meta) throws Exception
 	{
-		final FileOutputStream out = new FileOutputStream(outputCSVFile);
-		for (int i = 1; i <= meta.getColumnCount(); i++)
-		{
-			final String colType = meta.getColumnTypeName(i);
-			if (colType != null)
-			{
-				out.write(colType.getBytes());
-			}
-			if (i < meta.getColumnCount())
-			{
-				out.write(',');
-			}
-		}
-		out.write('\n');
-		for (int i = 1; i <= meta.getColumnCount(); i++)
-		{
-			final String colType = meta.getColumnLabel(i);
-			if (colType != null)
-			{
-				out.write(colType.getBytes());
-			}
-			if (i < meta.getColumnCount())
-			{
-				out.write(',');
-			}
-		}
-		out.write('\n');
-		int rowCount = 0;
-		while (rs.next())
+		Writer out = new OutputStreamWriter(new FileOutputStream(outputCSVFile), Charset.defaultCharset());
+		try
 		{
 			for (int i = 1; i <= meta.getColumnCount(); i++)
 			{
-				out.write('"');
-				final Object o = rs.getObject(i);
-				String valueString = "NULL";
-				if (rs.wasNull())
+				final String colType = meta.getColumnTypeName(i);
+				if (colType != null)
 				{
-					valueString = "NULL";
+					out.write(colType);
 				}
-				else if (o instanceof byte[])
-				{
-					valueString = "0x" + bytesToHex((byte[]) o);
-				}
-				else if (o != null)
-				{
-					valueString = o.toString();
-				}
-				for (int j = 0; j < valueString.length(); j++)
-				{
-					if (valueString.charAt(j) == '"')
-					{
-						out.write("\"\"".getBytes());
-					}
-					else
-					{
-						out.write(valueString.charAt(j));
-					}
-				}
-				out.write('"');
 				if (i < meta.getColumnCount())
 				{
 					out.write(',');
 				}
 			}
 			out.write('\n');
-			rowCount++;
+			for (int i = 1; i <= meta.getColumnCount(); i++)
+			{
+				final String colType = meta.getColumnLabel(i);
+				if (colType != null)
+				{
+					out.write(colType);
+				}
+				if (i < meta.getColumnCount())
+				{
+					out.write(',');
+				}
+			}
+			out.write('\n');
+			int rowCount = 0;
+			while (rs.next())
+			{
+				for (int i = 1; i <= meta.getColumnCount(); i++)
+				{
+					out.write('"');
+					final Object o = rs.getObject(i);
+					String valueString = "NULL";
+					if (rs.wasNull())
+					{
+						valueString = "NULL";
+					}
+					else if (o instanceof byte[])
+					{
+						valueString = "0x" + bytesToHex((byte[]) o);
+					}
+					else if (o != null)
+					{
+						valueString = o.toString();
+					}
+					for (int j = 0; j < valueString.length(); j++)
+					{
+						if (valueString.charAt(j) == '"')
+						{
+							out.write("\"\"");
+						}
+						else
+						{
+							out.write(valueString.charAt(j));
+						}
+					}
+					out.write('"');
+					if (i < meta.getColumnCount())
+					{
+						out.write(',');
+					}
+				}
+				out.write('\n');
+				rowCount++;
+			}
+				out.close();
+				System.out.println("Fetched " + rowCount + (rowCount == 1 ? " row" : " rows"));
 		}
-		out.close();
-		System.out.println("Fetched " + rowCount + (rowCount == 1 ? " row" : " rows"));
+		catch(final Exception e)
+		{
+			out.close();
+			System.out.println("Error: " + e.getMessage());
+		}
 	}
 
 	private static void printAllQueries(final ArrayList<SysQueriesRow> queries)
 	{
-		System.out.format("%-40s%-15s%-15s%-20s%-20s%-15s%-20s%-15s%s\n", "query id", "user", "importance", "estimated time", "elapsed time", "status", "server", "database", "sql");
+		System.out.format("%-40s%-15s%-15s%-20s%-20s%-15s%-20s%-15s%s%n", "query id", "user", "importance", "estimated time", "elapsed time", "status", "server", "database", "sql");
 		System.out.println(new String(new char[170]).replace("\0", "-"));
 		for (final SysQueriesRow row : queries)
 		{
-			System.out.format("%-40s%-15s%-15s%-20s%-20s%-15s%-20s%-15s%s\n", row.getQueryId(), row.getUserid(), row.getImportance(), row.getEstimatedTimeSec(), row.getElapsedTimeSec(),
+			System.out.format("%-40s%-15s%-15s%-20s%-20s%-15s%-20s%-15s%s%n", row.getQueryId(), row.getUserid(), row.getImportance(), row.getEstimatedTimeSec(), row.getElapsedTimeSec(),
 				row.getStatus(), row.getQueryServer(), row.getDatabase(), row.getSqlText());
 		}
 	}
@@ -1772,7 +1822,10 @@ public class CLI
 		{
 			try
 			{
-				rs.close();
+				if(rs != null)
+				{
+					rs.close();
+				}
 			}
 			catch (final Exception f)
 			{
@@ -1793,7 +1846,6 @@ public class CLI
 
 		try
 		{
-			start = System.currentTimeMillis();
 			stmt.execute(cmd);
 		}
 		catch (final Exception e)
@@ -1873,7 +1925,7 @@ public class CLI
 
 		try
 		{
-			final Reader reader = new FileReader(file);
+			final InputStreamReader reader = new InputStreamReader(new FileInputStream(file), Charset.defaultCharset());
 			final BufferedReader bufferedReader = new BufferedReader(reader);
 
 			final char oldQuote = quote;
@@ -1912,8 +1964,7 @@ public class CLI
 		}
 
 		printTime(start, System.currentTimeMillis());
-
-		final boolean removed = sources.remove(file);
+		sources.remove(file);
 
 		return quit;
 	}

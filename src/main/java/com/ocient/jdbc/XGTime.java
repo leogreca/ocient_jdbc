@@ -93,7 +93,7 @@ public class XGTime extends Time
 	{
 		if (obj instanceof XGTime)
 		{
-			return getTime() == ((java.sql.Date) obj).getTime() && getNanos() == ((XGTime) obj).getNanos();
+			return getTime() == ((XGTime) obj).getTime() && getNanos() == ((XGTime) obj).getNanos();
 		}
 
 		if (obj instanceof java.util.Date)
@@ -102,6 +102,12 @@ public class XGTime extends Time
 		}
 
 		return false;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Long.hashCode(getTime()) + getNanos();
 	}
 
 	@Override
