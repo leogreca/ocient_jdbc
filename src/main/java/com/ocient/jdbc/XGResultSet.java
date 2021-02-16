@@ -687,8 +687,8 @@ public class XGResultSet implements ResultSet
 	@Override
 	public BigDecimal getBigDecimal(final int columnIndex, final int scale) throws SQLException
 	{
-		final BigDecimal retval = getBigDecimal(columnIndex);
-		retval.setScale(scale, RoundingMode.HALF_UP);
+		BigDecimal retval = getBigDecimal(columnIndex);
+		retval = retval.setScale(scale, RoundingMode.HALF_UP);
 		return retval;
 	}
 
@@ -712,8 +712,8 @@ public class XGResultSet implements ResultSet
 	@Override
 	public BigDecimal getBigDecimal(final String columnLabel, final int scale) throws SQLException
 	{
-		final BigDecimal retval = getBigDecimal(columnLabel);
-		retval.setScale(scale, RoundingMode.HALF_UP);
+		BigDecimal retval = getBigDecimal(columnLabel);
+		retval = retval.setScale(scale, RoundingMode.HALF_UP);
 		return retval;
 	}
 
@@ -1424,6 +1424,9 @@ public class XGResultSet implements ResultSet
 				}
 
 				count += temp;
+			} catch(RuntimeException e)
+			{
+				throw e;
 			}
 			catch (final Exception e)
 			{
@@ -1512,10 +1515,6 @@ public class XGResultSet implements ResultSet
 		catch (final Exception e)
 		{
 			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getMetaData() with message %s", e.toString(), e.getMessage()));
-			if (e instanceof SQLException)
-			{
-				throw (SQLException) e;
-			}
 
 			throw SQLStates.newGenericException(e);
 		}
@@ -2732,6 +2731,7 @@ public class XGResultSet implements ResultSet
 							final byte[] dst = new byte[stringLength];
 							((Buffer) bb).position(offset);
 							bb.get(dst);
+							String temp = new String(dst, Charsets.UTF_8);
 							alo.add(new String(dst, Charsets.UTF_8));
 							offset += stringLength;
 						}

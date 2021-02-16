@@ -222,6 +222,9 @@ public class JDBCDriver implements Driver
 			{
 				throw lastException;
 			}
+		}catch (RuntimeException e) 
+		{
+			throw e;
 		}
 		catch (final Exception e)
 		{

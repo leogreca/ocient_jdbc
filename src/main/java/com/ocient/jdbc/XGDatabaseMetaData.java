@@ -317,16 +317,40 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 	public ResultSet getColumnPrivileges(final String catalog, final String schema, final String table, final String columnNamePattern) throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getColumnPrivileges()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_COLUMN_PRIVILEGES, schema, table, columnNamePattern,
+		XGStatement stmt = (XGStatement)conn.createStatement();
+		ResultSet retval;
+		try {
+			retval = stmt.fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_COLUMN_PRIVILEGES, schema, table, columnNamePattern,
 			true);
+		}
+		catch (final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getColumnPrivileges with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
 	public ResultSet getColumns(final String catalog, final String schemaPattern, final String tableNamePattern, final String columnNamePattern) throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getColumns()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_COLUMNS, schemaPattern, tableNamePattern,
+		XGStatement stmt = (XGStatement)conn.createStatement();
+		ResultSet retval;
+		try {
+			retval = stmt.fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_COLUMNS, schemaPattern, tableNamePattern,
 			columnNamePattern, true);
+		}
+		catch (final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getColumns with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
@@ -429,14 +453,38 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 	public int getDatabaseMajorVersion() throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getDatabaseMajorVersion()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataInt(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_DATABASE_MAJOR_VERSION);
+		XGStatement stmt = (XGStatement)conn.createStatement();
+		int retval;
+		try {
+			retval = stmt.fetchSystemMetadataInt(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_DATABASE_MAJOR_VERSION);
+		}
+		catch (final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getDatabaseMajorVersion with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
 	public int getDatabaseMinorVersion() throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getDatabaseMinorVersion()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataInt(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_DATABASE_MINOR_VERSION);
+		XGStatement stmt = (XGStatement)conn.createStatement();
+		int retval;
+		try {
+			retval = stmt.fetchSystemMetadataInt(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_DATABASE_MINOR_VERSION);
+		}
+		catch (final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getDatabaseMinorVersion with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
@@ -450,7 +498,19 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 	public String getDatabaseProductVersion() throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getDatabaseProductVersion()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataString(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_DATABASE_PRODUCT_VERSION);
+		XGStatement stmt = (XGStatement)conn.createStatement();
+		String retval;
+		try {
+			retval = stmt.fetchSystemMetadataString(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_DATABASE_PRODUCT_VERSION);
+		}
+		catch (final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getDatabaseProductVersion with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
@@ -840,7 +900,19 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			test = true;
 			wireSchema = schema;
 		}
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_INDEX_INFO, wireSchema, table, "", test);
+		XGStatement stmt = (XGStatement)conn.createStatement();
+		ResultSet retval;
+		try{
+			retval = stmt.fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_INDEX_INFO, wireSchema, table, "", test);
+		}
+		catch(final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getIndexInfo with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
@@ -1001,7 +1073,19 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 	public String getNumericFunctions() throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getNumericFunctions()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataString(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_NUMERIC_FUNCTIONS);
+		XGStatement stmt = (XGStatement) conn.createStatement();
+		String retval;
+		try{
+			retval = stmt.fetchSystemMetadataString(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_NUMERIC_FUNCTIONS);
+		}
+		catch(final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getNumericFunctions with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
@@ -1301,14 +1385,38 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 	public ResultSet getSchemas() throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getSchemas()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_SCHEMAS, "", "", "", false);
+		XGStatement stmt = (XGStatement)conn.createStatement();
+		ResultSet retval;
+		try{
+			retval = stmt.fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_SCHEMAS, "", "", "", false);
+		}
+		catch(final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getSchemas with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
 	public ResultSet getSchemas(final String catalog, final String schemaPattern) throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getSchemas()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_SCHEMAS, schemaPattern, "", "", true);
+		XGStatement stmt = (XGStatement)conn.createStatement();
+		ResultSet retval;
+		try{
+			retval = stmt.fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_SCHEMAS, schemaPattern, "", "", true);
+		}
+		catch(final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getSchemas with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
@@ -1329,7 +1437,19 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 	public String getSQLKeywords() throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getSQLKeywords()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataString(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_SQL_KEYWORDS);
+		XGStatement stmt = (XGStatement) conn.createStatement();
+		String retval;
+		try{
+			retval = stmt.fetchSystemMetadataString(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_SQL_KEYWORDS);
+		}
+		catch(final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getSQLKeywords with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
@@ -1343,7 +1463,19 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 	public String getStringFunctions() throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getStringFunctions()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataString(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_STRING_FUNCTIONS);
+		XGStatement stmt = (XGStatement) conn.createStatement();
+		String retval;
+		try{
+			retval = stmt.fetchSystemMetadataString(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_STRING_FUNCTIONS);
+		}
+		catch(final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getStringFunctions with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
@@ -1425,23 +1557,59 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 	public String getSystemFunctions() throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getSystemFunctions()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataString(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_SYSTEM_FUNCTIONS);
+		XGStatement stmt = (XGStatement) conn.createStatement();
+		String retval;
+		try{
+			retval = stmt.fetchSystemMetadataString(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_SYSTEM_FUNCTIONS);
+		}
+		catch(final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getSystemFunctions with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	public ResultSet getSystemTables(final String catalog, final String schemaPattern, final String tableNamePattern, final String[] types) throws SQLException
 	{
 		// we only have one table type
 		LOGGER.log(Level.INFO, "Called getSystemTables()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_SYSTEM_TABLES, schemaPattern, tableNamePattern, "",
+		XGStatement stmt = (XGStatement)conn.createStatement();
+		ResultSet retval;
+		try{
+			retval = stmt.fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_SYSTEM_TABLES, schemaPattern, tableNamePattern, "",
 			true);
+		}
+		catch(final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getSystemTables with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
 	public ResultSet getTablePrivileges(final String catalog, final String schemaPattern, final String tableNamePattern) throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getTablePrivileges()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_TABLE_PRIVILEGES, schemaPattern, tableNamePattern, "",
+		XGStatement stmt = (XGStatement)conn.createStatement();
+		ResultSet retval;
+		try{
+			retval = stmt.fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_TABLE_PRIVILEGES, schemaPattern, tableNamePattern, "",
 			true);
+		}
+		catch(final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getTablePrivileges with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
@@ -1449,7 +1617,19 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 	{
 		// we only have one table type
 		LOGGER.log(Level.INFO, "Called getTables()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_TABLES, schemaPattern, tableNamePattern, "", true);
+		XGStatement stmt = (XGStatement)conn.createStatement();
+		ResultSet retval;
+		try{
+			retval = stmt.fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_TABLES, schemaPattern, tableNamePattern, "", true);
+		}
+		catch(final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getTables with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
@@ -1483,14 +1663,38 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 	public String getTimeDateFunctions() throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getTimeDateFunctions()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataString(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_TIME_DATE_FUNCTIONS);
+		XGStatement stmt = (XGStatement) conn.createStatement();
+		String retval;
+		try{
+			retval = stmt.fetchSystemMetadataString(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_TIME_DATE_FUNCTIONS);
+		}
+		catch(final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getTimeDateFunctions with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
 	public ResultSet getTypeInfo() throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getTypeInfo()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_TYPE_INFO, "", "", "", true);
+		XGStatement stmt = (XGStatement)conn.createStatement();
+		ResultSet retval;
+		try{
+			retval = stmt.fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_TYPE_INFO, "", "", "", true);
+		}
+		catch(final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getTypeInfo with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override
@@ -1606,7 +1810,19 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 	public ResultSet getViews(final String catalog, final String schemaPattern, final String viewNamePattern, final String[] types) throws SQLException
 	{
 		LOGGER.log(Level.INFO, "Called getViews()");
-		return ((XGStatement) conn.createStatement()).fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_VIEWS, schemaPattern, viewNamePattern, "", true);
+		XGStatement stmt = (XGStatement)conn.createStatement();
+		ResultSet retval;
+		try{
+			retval = stmt.fetchSystemMetadataResultSet(ClientWireProtocol.FetchSystemMetadata.SystemMetadataCall.GET_VIEWS, schemaPattern, viewNamePattern, "", true);
+		}
+		catch(final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getViews with message %s", e.toString(), e.getMessage()));
+			stmt.close();
+			throw e;
+		}
+		stmt.close();
+		return retval;
 	}
 
 	@Override

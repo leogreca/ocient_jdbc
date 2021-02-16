@@ -55,7 +55,8 @@ public class XGArray implements java.sql.Array
 	@Override
 	public Object getArray() throws SQLException
 	{
-		return array;
+		Object arrayCopy = array;
+		return arrayCopy;
 	}
 
 	@Override
