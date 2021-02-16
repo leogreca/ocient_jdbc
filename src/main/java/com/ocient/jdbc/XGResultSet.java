@@ -2731,7 +2731,6 @@ public final class XGResultSet implements ResultSet
 							final byte[] dst = new byte[stringLength];
 							((Buffer) bb).position(offset);
 							bb.get(dst);
-							String temp = new String(dst, Charsets.UTF_8);
 							alo.add(new String(dst, Charsets.UTF_8));
 							offset += stringLength;
 						}
