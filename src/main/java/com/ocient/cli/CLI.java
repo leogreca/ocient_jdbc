@@ -1964,6 +1964,7 @@ public class CLI
 		}
 
 		printTime(start, System.currentTimeMillis());
+		sources.remove(file);
 
 		return quit;
 	}
