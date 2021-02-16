@@ -50,7 +50,7 @@ import com.ocient.jdbc.proto.ClientWireProtocol.FetchData;
 import com.ocient.jdbc.proto.ClientWireProtocol.FetchMetadata;
 import com.ocient.jdbc.proto.ClientWireProtocol.Request;
 
-public class XGResultSet implements ResultSet
+public final class XGResultSet implements ResultSet
 {
 
 	public class SecondaryResultSetThread implements Runnable
@@ -1132,7 +1132,7 @@ public class XGResultSet implements ResultSet
 
 		// set up starting indices for reading digits out
 		int theByte = 0;
-		boolean highOrder = precision % 2 == 1; // first high-order nibble might be filler
+		boolean highOrder = precision % 2 != 0; // first high-order nibble might be filler
 
 		// read digits from nibbles
 		for (int i = 0; i < precision; i++)

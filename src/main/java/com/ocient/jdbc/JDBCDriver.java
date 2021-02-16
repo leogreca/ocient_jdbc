@@ -32,7 +32,6 @@ public class JDBCDriver implements Driver
 		}
 		catch (final SQLException e)
 		{
-			e.printStackTrace(System.err);
 		}
 	}
 
@@ -109,7 +108,6 @@ public class JDBCDriver implements Driver
 			}
 			catch (final IOException | IllegalArgumentException e)
 			{
-				e.printStackTrace(System.err);
 				// An illegal file argument was entered most likely.
 				LOGGER.setLevel(Level.OFF);
 				return;
