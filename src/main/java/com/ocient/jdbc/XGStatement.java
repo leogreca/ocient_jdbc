@@ -1246,7 +1246,7 @@ public class XGStatement implements Statement
 	// used by CLI
 	public String explainPipeline(final String table) throws SQLException
 	{
-		final ClientWireProtocol.ExecuteExportResponse.Builder er = (ClientWireProtocol.ExecuteExportResponse.Builder) sendAndReceive(table, Request.RequestType.EXECUTE_EXPORT, 0, false,
+		final ClientWireProtocol.ExecuteExportResponse.Builder er = (ClientWireProtocol.ExecuteExportResponse.Builder) sendAndReceive(table, Request.RequestType.EXPLAIN_PIPELINE, 0, false,
 			Optional.empty());
 		return er.getExportStatement();
 	}
@@ -2220,6 +2220,7 @@ public class XGStatement implements Statement
 					redirectFlag = false;
 					break;
 				case EXECUTE_EXPORT:
+				case EXPLAIN_PIPELINE: // explain pipeline uses the same protobuf as export
 					c = ExecuteExport.class;
 					b1 = ExecuteExport.newBuilder();
 					br = ClientWireProtocol.ExecuteExportResponse.newBuilder();
