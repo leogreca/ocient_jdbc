@@ -357,7 +357,7 @@ message Request
 		ATTACH_TO_QUERY = 29;
 		// 30 used above
 		SET_PARAMETER = 34;
-
+		EXPLAIN_PIPELINE = 35;
     }
 
     RequestType type = 1;
