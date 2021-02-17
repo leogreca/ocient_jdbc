@@ -2220,14 +2220,7 @@ public class XGStatement implements Statement
 					redirectFlag = false;
 					break;
 				case EXECUTE_EXPORT:
-					c = ExecuteExport.class;
-					b1 = ExecuteExport.newBuilder();
-					br = ClientWireProtocol.ExecuteExportResponse.newBuilder();
-					setWrapped = b2.getClass().getMethod("setExecuteExport", c);
-					forceFlag = false;
-					redirectFlag = false;
-					break;
-				case EXPLAIN_PIPELINE:
+				case EXPLAIN_PIPELINE: // explain pipeline uses the same protobuf as export
 					c = ExecuteExport.class;
 					b1 = ExecuteExport.newBuilder();
 					br = ClientWireProtocol.ExecuteExportResponse.newBuilder();
