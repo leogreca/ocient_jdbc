@@ -96,7 +96,7 @@ public class XGPreparedStatement extends XGStatement implements PreparedStatemen
 		{
 			try
 			{
-				if (conn.serverVersion == "")
+				if (conn.serverVersion.equals(""))
 				{
 					conn.fetchServerVersion();
 				}
@@ -153,7 +153,7 @@ public class XGPreparedStatement extends XGStatement implements PreparedStatemen
 		{
 			try
 			{
-				if (conn.serverVersion == "")
+				if (conn.serverVersion.equals(""))
 				{
 					conn.fetchServerVersion();
 				}
@@ -216,7 +216,7 @@ public class XGPreparedStatement extends XGStatement implements PreparedStatemen
 		{
 			try
 			{
-				if (conn.serverVersion == "")
+				if (conn.serverVersion.equals(""))
 				{
 					conn.fetchServerVersion();
 				}

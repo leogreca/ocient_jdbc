@@ -50,7 +50,7 @@ import com.ocient.jdbc.proto.ClientWireProtocol.FetchData;
 import com.ocient.jdbc.proto.ClientWireProtocol.FetchMetadata;
 import com.ocient.jdbc.proto.ClientWireProtocol.Request;
 
-public class XGResultSet implements ResultSet
+public final class XGResultSet implements ResultSet
 {
 
 	public class SecondaryResultSetThread implements Runnable
@@ -687,8 +687,8 @@ public class XGResultSet implements ResultSet
 	@Override
 	public BigDecimal getBigDecimal(final int columnIndex, final int scale) throws SQLException
 	{
-		final BigDecimal retval = getBigDecimal(columnIndex);
-		retval.setScale(scale, RoundingMode.HALF_UP);
+		BigDecimal retval = getBigDecimal(columnIndex);
+		retval = retval.setScale(scale, RoundingMode.HALF_UP);
 		return retval;
 	}
 
@@ -712,8 +712,8 @@ public class XGResultSet implements ResultSet
 	@Override
 	public BigDecimal getBigDecimal(final String columnLabel, final int scale) throws SQLException
 	{
-		final BigDecimal retval = getBigDecimal(columnLabel);
-		retval.setScale(scale, RoundingMode.HALF_UP);
+		BigDecimal retval = getBigDecimal(columnLabel);
+		retval = retval.setScale(scale, RoundingMode.HALF_UP);
 		return retval;
 	}
 
@@ -1132,7 +1132,7 @@ public class XGResultSet implements ResultSet
 
 		// set up starting indices for reading digits out
 		int theByte = 0;
-		boolean highOrder = precision % 2 == 1; // first high-order nibble might be filler
+		boolean highOrder = precision % 2 != 0; // first high-order nibble might be filler
 
 		// read digits from nibbles
 		for (int i = 0; i < precision; i++)
@@ -1424,6 +1424,9 @@ public class XGResultSet implements ResultSet
 				}
 
 				count += temp;
+			} catch(RuntimeException e)
+			{
+				throw e;
 			}
 			catch (final Exception e)
 			{
@@ -1512,10 +1515,6 @@ public class XGResultSet implements ResultSet
 		catch (final Exception e)
 		{
 			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during getMetaData() with message %s", e.toString(), e.getMessage()));
-			if (e instanceof SQLException)
-			{
-				throw (SQLException) e;
-			}
 
 			throw SQLStates.newGenericException(e);
 		}

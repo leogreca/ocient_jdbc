@@ -110,7 +110,7 @@ public class XGTimestamp extends Timestamp
 	@Override
 	public boolean equals(final Timestamp obj)
 	{
-		if (obj instanceof java.sql.Timestamp)
+		if (obj != null)
 		{
 			return getTime() == obj.getTime() && getNanos() == obj.getNanos();
 		}
