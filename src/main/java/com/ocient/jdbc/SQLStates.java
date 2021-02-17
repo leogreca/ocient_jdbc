@@ -2,7 +2,7 @@ package com.ocient.jdbc;
 
 import java.sql.SQLException;
 
-public class SQLStates
+public final class SQLStates implements Cloneable
 {
 	private static String NORMAL_COMPLETION = "00000";
 	private static String TRUNCATION_STATE = "01004";

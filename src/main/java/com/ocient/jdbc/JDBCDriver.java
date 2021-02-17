@@ -22,7 +22,7 @@ public class JDBCDriver implements Driver
 	private static final Logger LOGGER = Logger.getLogger("com.ocient.jdbc");
 	private static String logFileName;
 	private static FileHandler logHandler;
-	private static final Boolean logMonitor = false;
+	private final Object logMonitor = new Object();
 
 	static
 	{
