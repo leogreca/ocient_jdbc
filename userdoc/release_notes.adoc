@@ -5,6 +5,13 @@ All our jdbc drivers are located {drivers_repo}[here].
 Below is the release notes for every driver version that has customer implication.
 
 //tag::compact[]
+== 1.85 (2021-2-18)
+
+New Features::
+
+* Added CLI support for EXPORT VIEW
+
+//tag::compact[]
 == 1.84 (2021-2-16)
 
 New Features::
