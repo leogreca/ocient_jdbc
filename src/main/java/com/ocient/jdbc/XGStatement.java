@@ -44,6 +44,7 @@ import com.ocient.jdbc.proto.ClientWireProtocol.ConfirmationResponse;
 import com.ocient.jdbc.proto.ClientWireProtocol.ConfirmationResponse.ResponseType;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecuteExplain;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecuteExport;
+import com.ocient.jdbc.proto.ClientWireProtocol.ExplainPipelineRequest;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecuteInlinePlan;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecutePlan;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecuteQuery;
@@ -1246,14 +1247,14 @@ public class XGStatement implements Statement
 	// used by CLI
 	public String explainPipeline(final String table) throws SQLException
 	{
-		final ClientWireProtocol.ExecuteExportResponse.Builder er = (ClientWireProtocol.ExecuteExportResponse.Builder) sendAndReceive(table, Request.RequestType.EXPLAIN_PIPELINE, 0, false,
+		final ClientWireProtocol.ExplainPipelineResponse.Builder er = (ClientWireProtocol.ExplainPipelineResponse.Builder) sendAndReceive(table, Request.RequestType.EXPLAIN_PIPELINE, 0, false,
 			Optional.empty());
-		return er.getExportStatement();
+		return er.getPipelineStatement();
 	}
 
 	private ResultSet explainPipelineSQL(final String cmd) throws SQLException
 	{
-		LOGGER.log(Level.INFO, "Enetered driver's explainPipeline");
+		LOGGER.log(Level.INFO, "Entered driver's explainPipeline");
 		final String explainPipelineStr = explainPipeline(cmd);
 		final ArrayList<Object> rs = new ArrayList<>();
 		final ArrayList<Object> row = new ArrayList<>();
@@ -2220,11 +2221,18 @@ public class XGStatement implements Statement
 					redirectFlag = false;
 					break;
 				case EXECUTE_EXPORT:
-				case EXPLAIN_PIPELINE: // explain pipeline uses the same protobuf as export
 					c = ExecuteExport.class;
 					b1 = ExecuteExport.newBuilder();
 					br = ClientWireProtocol.ExecuteExportResponse.newBuilder();
 					setWrapped = b2.getClass().getMethod("setExecuteExport", c);
+					forceFlag = false;
+					redirectFlag = false;
+					break;
+				case EXPLAIN_PIPELINE:
+					c = ExplainPipelineRequest.class;
+					b1 = ExplainPipelineRequest.newBuilder();
+					br = ClientWireProtocol.ExplainPipelineResponse.newBuilder();
+					setWrapped = b2.getClass().getMethod("setExplainPipeline", c);
 					forceFlag = false;
 					redirectFlag = false;
 					break;
