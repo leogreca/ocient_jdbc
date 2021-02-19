@@ -357,7 +357,7 @@ message Request
 		ATTACH_TO_QUERY = 29;
 		// 30 used above
 		SET_PARAMETER = 34;
-
+		EXPLAIN_PIPELINE = 35;
     }
 
     RequestType type = 1;
@@ -398,6 +398,7 @@ message Request
 		AttachToQuery attach_to_query = 30;
 		// 31 is defined above
 		SetParameter set_parameter = 35;
+		ExplainPipelineRequest explain_pipeline = 36;
     }
 }
 
@@ -520,6 +521,17 @@ message ExecuteExportResponse
 {
 	ConfirmationResponse response = 1;
 	string exportStatement = 2;
+}
+
+message ExplainPipelineRequest
+{
+	string sql = 1;
+}
+
+message ExplainPipelineResponse
+{
+	ConfirmationResponse response = 1;
+	string pipelineStatement = 2;
 }
 
 message SetPSO
