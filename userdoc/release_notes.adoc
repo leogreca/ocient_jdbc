@@ -23,7 +23,6 @@ New Features::
 
 New Features::
 
- * Fixed more OWASP bugs.
  * Update the request type for EXPLAIN PIPELINE
 
 //tag::compact[]
