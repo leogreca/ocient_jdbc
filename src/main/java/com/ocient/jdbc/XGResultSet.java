@@ -615,6 +615,20 @@ public final class XGResultSet implements ResultSet
 					retval.add(time, i);
 					offset[0] += 8;
 				}
+				else if (t == 22) // st_linestring
+				{
+					final int length = bb.getInt(offset[0]);
+					offset[0] += 4;
+					final List<StPoint> points = new ArrayList<StPoint>();
+					for(int j = 0; j < length; j++) {
+						final double lon = Double.longBitsToDouble(bb.getLong(offset[0]));
+						offset[0] += 8;
+						final double lat = Double.longBitsToDouble(bb.getLong(offset[0]));
+						offset[0] += 8;
+						points.add(new StPoint(lon, lat));
+					}
+					retval.add(new StLinestring(points), i);
+				}
 				else
 				{
 					throw SQLStates.INVALID_COLUMN_TYPE.clone();
@@ -2843,6 +2857,20 @@ public final class XGResultSet implements ResultSet
 							time.setNanos((int) (nanos - seconds * 1000000000));
 							alo.add(time);
 							offset += 8;
+						}
+						else if (type == 22) // ST_LINESTRING
+						{
+							final int length = bb.getInt(offset);
+							offset += 4;
+							final List<StPoint> points = new ArrayList<StPoint>();
+							for(int j = 0; j < length; j++) {
+								final double lon = Double.longBitsToDouble(bb.getLong(offset));
+								offset += 8;
+								final double lat = Double.longBitsToDouble(bb.getLong(offset));
+								offset += 8;
+								points.add(new StPoint(lon, lat));
+							}
+							alo.add(new StLinestring(points));
 						}
 						else
 						{
