@@ -2722,6 +2722,36 @@ public final class XGResultSet implements ResultSet
 			}
 			retval = new StLinestring(points);
 		}
+		else if (type == 24) // ST_POLYGON
+		{
+			final int length = bb.getInt(offset);
+			offset += 4;
+			final List<StPoint> exterior = new ArrayList<StPoint>();
+			for(int j = 0; j < length; j++) {
+				final double lon = Double.longBitsToDouble(bb.getLong(offset));
+				offset += 8;
+				final double lat = Double.longBitsToDouble(bb.getLong(offset));
+				offset += 8;
+				exterior.add(new StPoint(lon, lat));
+			}
+			final int numRings = bb.getInt(offset);
+			offset += 4;
+			List<List<StPoint>> holes = new ArrayList<List<StPoint>>();
+			for(int j = 0; j < numRings; j++) {
+				int numPointsInRing = bb.getInt(offset);
+				offset += 4;
+				List<StPoint> ring = new ArrayList<StPoint>();
+				for(int k = 0; k < numPointsInRing; k++) {
+					final double lon = Double.longBitsToDouble(bb.getLong(offset));
+					offset += 8;
+					final double lat = Double.longBitsToDouble(bb.getLong(offset));
+					offset += 8;
+					ring.add(new StPoint(lon, lat));
+				}
+				holes.add(ring);
+			}
+			retval = new StPolygon(exterior, holes);
+		}
 		else
 		{
 			throw SQLStates.INVALID_COLUMN_TYPE.clone();

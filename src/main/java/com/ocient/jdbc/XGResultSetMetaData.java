@@ -112,6 +112,10 @@ public class XGResultSetMetaData implements ResultSetMetaData
 		{
 			return "com.ocient.jdbc.StLinestring";
 		}
+		else if (type.equals("ST_POLYGON"))
+		{
+			return "com.ocient.jdbc.StPolygon";
+		}
 		else if (type.equals("IP") || type.equals("IPV4"))
 		{
 			return "java.net.InetAddress";
@@ -203,6 +207,10 @@ public class XGResultSetMetaData implements ResultSetMetaData
 			return 47;
 		}
 		else if (type.equals("ST_LINESTRING"))
+		{
+			return 47;
+		}
+		else if (type.equals("ST_POLYGON"))
 		{
 			return 47;
 		}
@@ -321,6 +329,10 @@ public class XGResultSetMetaData implements ResultSetMetaData
 		{
 			return java.sql.Types.OTHER;
 		}
+		else if (type.equals("ST_POLYGON"))
+		{
+			return java.sql.Types.OTHER;
+		}
 		else if (type.equals("IP") || type.equals("IPV4"))
 		{
 			return java.sql.Types.OTHER;
@@ -431,6 +443,10 @@ public class XGResultSetMetaData implements ResultSetMetaData
 			return 32;
 		}
 		else if (type.equals("ST_LINESTRING"))
+		{
+			return 32;
+		}
+		else if (type.equals("ST_POLYGON"))
 		{
 			return 32;
 		}
@@ -614,6 +630,8 @@ public class XGResultSetMetaData implements ResultSetMetaData
 				return "TUPLE";
 			case 23:
 				return "ST_LINESTRING";
+			case 24:
+				return "ST_POLYGON";
 			default:
 				throw SQLStates.INVALID_COLUMN_TYPE.clone();
 		}
