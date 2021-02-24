@@ -5,6 +5,12 @@ All our jdbc drivers are located {drivers_repo}[here].
 Below is the release notes for every driver version that has customer implication.
 
 //tag::compact[]
+== 1.87 (2021-2-14)
+
+New Features::
+
+ * Added support for TUPLE columns as a SQL Struct type
+
 == 1.86 (2021-2-19)
 
 New Features::
