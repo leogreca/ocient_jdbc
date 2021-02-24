@@ -129,6 +129,8 @@ public class XGArray implements java.sql.Array
 			case 21:
 				return Types.TIME;
 			case 22:
+				return Types.STRUCT;
+			case 23:
 				return Types.OTHER;
 			default:
 				throw SQLStates.INVALID_COLUMN_TYPE.clone();
@@ -138,55 +140,7 @@ public class XGArray implements java.sql.Array
 	@Override
 	public String getBaseTypeName() throws SQLException
 	{
-		switch (type)
-		{
-			case 1:
-				return "INTEGER";
-			case 2:
-				return "BIGINT";
-			case 3:
-				return "FLOAT";
-			case 4:
-				return "DOUBLE";
-			case 5:
-				return "VARCHAR";
-			case 6:
-				return "TIMESTAMP";
-			case 7:
-				return "NULL";
-			case 8:
-				return "BOOLEAN";
-			case 9:
-				return "VARBINARY";
-			case 10:
-				return "BYTE";
-			case 11:
-				return "SMALLINT";
-			case 12:
-				return "TIME";
-			case 13:
-				return "DECIMAL";
-			case 14:
-				return "ARRAY";
-			case 15:
-				return "UUID";
-			case 16:
-				return "ST_POINT";
-			case 17:
-				return "IP";
-			case 18:
-				return "IPV4";
-			case 19:
-				return "DATE";
-			case 20:
-				return "TIMESTAMP";
-			case 21:
-				return "TIME";
-			case 22:
-				return "ST_LINESTRING";
-			default:
-				throw SQLStates.INVALID_COLUMN_TYPE.clone();
-		}
+		return XGResultSetMetaData.type2Name(type);
 	}
 
 	@Override
@@ -212,78 +166,8 @@ public class XGArray implements java.sql.Array
 		pos2Cols.put(1, "array_value");
 		cols2Types.put("index", "INT");
 
-		switch (type)
-		{
-			case 1:
-				cols2Types.put("array_value", "INT");
-				break;
-			case 2:
-				cols2Types.put("array_value", "LONG");
-				break;
-			case 3:
-				cols2Types.put("array_value", "FLOAT");
-				break;
-			case 4:
-				cols2Types.put("array_value", "DOUBLE");
-				break;
-			case 5:
-				cols2Types.put("array_value", "CHAR");
-				break;
-			case 6:
-				cols2Types.put("array_value", "TIMESTAMP");
-				break;
-			case 7:
-				cols2Types.put("array_value", "NULL");
-				break;
-			case 8:
-				cols2Types.put("array_value", "BOOLEAN");
-				break;
-			case 9:
-				cols2Types.put("array_value", "BINARY");
-				break;
-			case 10:
-				cols2Types.put("array_value", "BYTE");
-				break;
-			case 11:
-				cols2Types.put("array_value", "SHORT");
-				break;
-			case 12:
-				cols2Types.put("array_value", "TIME");
-				break;
-			case 13:
-				cols2Types.put("array_value", "DECIMAL");
-				break;
-			case 14:
-				cols2Types.put("array_value", "ARRAY");
-				break;
-			case 15:
-				cols2Types.put("array_value", "UUID");
-				break;
-			case 16:
-				cols2Types.put("array_value", "ST_POINT");
-				break;
-			case 17:
-				cols2Types.put("array_value", "IP");
-				break;
-			case 18:
-				cols2Types.put("array_value", "IPV4");
-				break;
-			case 19:
-				cols2Types.put("array_value", "DATE");
-				break;
-			case 20:
-				cols2Types.put("array_value", "TIMESTAMP");
-				break;
-			case 21:
-				cols2Types.put("array_value", "TIME");
-				break;
-			case 22:
-				cols2Types.put("array_value", "ST_LINESTRING");
-				break;
-			default:
-				throw SQLStates.INVALID_COLUMN_TYPE.clone();
-		}
-
+		cols2Types.put("array_value", XGResultSetMetaData.type2Name(type));
+		
 		retval.setCols2Pos(cols2Pos);
 		retval.setPos2Cols(pos2Cols);
 		retval.setCols2Types(cols2Types);
@@ -312,77 +196,7 @@ public class XGArray implements java.sql.Array
 		pos2Cols.put(1, "array_value");
 		cols2Types.put("index", "INT");
 
-		switch (type)
-		{
-			case 1:
-				cols2Types.put("array_value", "INT");
-				break;
-			case 2:
-				cols2Types.put("array_value", "LONG");
-				break;
-			case 3:
-				cols2Types.put("array_value", "FLOAT");
-				break;
-			case 4:
-				cols2Types.put("array_value", "DOUBLE");
-				break;
-			case 5:
-				cols2Types.put("array_value", "CHAR");
-				break;
-			case 6:
-				cols2Types.put("array_value", "TIMESTAMP");
-				break;
-			case 7:
-				cols2Types.put("array_value", "NULL");
-				break;
-			case 8:
-				cols2Types.put("array_value", "BOOLEAN");
-				break;
-			case 9:
-				cols2Types.put("array_value", "BINARY");
-				break;
-			case 10:
-				cols2Types.put("array_value", "BYTE");
-				break;
-			case 11:
-				cols2Types.put("array_value", "SHORT");
-				break;
-			case 12:
-				cols2Types.put("array_value", "TIME");
-				break;
-			case 13:
-				cols2Types.put("array_value", "DECIMAL");
-				break;
-			case 14:
-				cols2Types.put("array_value", "ARRAY");
-				break;
-			case 15:
-				cols2Types.put("array_value", "UUID");
-				break;
-			case 16:
-				cols2Types.put("array_value", "ST_POINT");
-				break;
-			case 17:
-				cols2Types.put("array_value", "IP");
-				break;
-			case 18:
-				cols2Types.put("array_value", "IPV4");
-				break;
-			case 19:
-				cols2Types.put("array_value", "DATE");
-				break;
-			case 20:
-				cols2Types.put("array_value", "TIMESTAMP");
-				break;
-			case 21:
-				cols2Types.put("array_value", "TIME");
-				break;
-			case 22:
-				cols2Types.put("array_value", "ST_LINESTRING");
-				break;
-			default:
-				throw SQLStates.INVALID_COLUMN_TYPE.clone();
-		}
+		cols2Types.put("array_value", XGResultSetMetaData.type2Name(type));
 
 		retval.setCols2Pos(cols2Pos);
 		retval.setPos2Cols(pos2Cols);

@@ -96,6 +96,10 @@ public class XGResultSetMetaData implements ResultSetMetaData
 		{
 			return "com.ocient.jdbc.XGArray";
 		}
+		else if (type.equals("TUPLE"))
+		{
+			return "com.ocient.jdbc.XGTuple";
+		}
 		else if (type.equals("UUID"))
 		{
 			return "java.util.UUID";
@@ -210,6 +214,10 @@ public class XGResultSetMetaData implements ResultSetMetaData
 		{
 			return 17;
 		}
+		else if(type.equals("TUPLE"))
+		{
+			retval = 80;
+		}
 		else
 		{
 			LOGGER.log(Level.WARNING, "getColumnDisplaySize() is throwing UNKNOWN_DATA_TYPE");
@@ -317,6 +325,10 @@ public class XGResultSetMetaData implements ResultSetMetaData
 		{
 			return java.sql.Types.OTHER;
 		}
+		else if(type.equals("TUPLE"))
+		{
+			return java.sql.Types.STRUCT;
+		}
 		else
 		{
 			LOGGER.log(Level.WARNING, "getColumnType() is throwing UNKNOWN_DATA_TYPE");
@@ -403,6 +415,10 @@ public class XGResultSetMetaData implements ResultSetMetaData
 			return 31;
 		}
 		else if (type.equals("ARRAY"))
+		{
+			return 128 * 1024;
+		}
+		else if (type.equals("TUPLE"))
 		{
 			return 128 * 1024;
 		}
@@ -546,5 +562,60 @@ public class XGResultSetMetaData implements ResultSetMetaData
 	{
 		LOGGER.log(Level.WARNING, "unwrap() was called, which is not supported");
 		throw new SQLFeatureNotSupportedException();
+	}
+
+	static String type2Name(byte type) throws SQLException
+	{
+		switch (type)
+		{
+			case 1:
+				return "INTEGER";
+			case 2:
+				return "BIGINT";
+			case 3:
+				return "FLOAT";
+			case 4:
+				return "DOUBLE";
+			case 5:
+				return "VARCHAR";
+			case 6:
+				return "TIMESTAMP";
+			case 7:
+				return "NULL";
+			case 8:
+				return "BOOLEAN";
+			case 9:
+				return "VARBINARY";
+			case 10:
+				return "BYTE";
+			case 11:
+				return "SMALLINT";
+			case 12:
+				return "TIME";
+			case 13:
+				return "DECIMAL";
+			case 14:
+				return "ARRAY";
+			case 15:
+				return "UUID";
+			case 16:
+				return "ST_POINT";
+			case 17:
+				return "IP";
+			case 18:
+				return "IPV4";
+			case 19:
+				return "DATE";
+			case 20:
+				return "TIMESTAMP";
+			case 21:
+				return "TIME";
+			case 22:
+				return "TUPLE";
+			case 23:
+				return "ST_LINESTRING";
+			default:
+				throw SQLStates.INVALID_COLUMN_TYPE.clone();
+		}
 	}
 }
