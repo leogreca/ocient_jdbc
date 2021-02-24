@@ -2,7 +2,12 @@ package com.ocient.jdbc;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -25,7 +30,8 @@ public class TraceProcessor
 		BufferedReader reader;
 		try
 		{
-			reader = new BufferedReader(new FileReader(inFile));
+			final InputStreamReader isr = new InputStreamReader(new FileInputStream(inFile), Charset.defaultCharset());
+			reader = new BufferedReader(isr);
 			String line = reader.readLine();
 			while (line != null)
 			{
@@ -46,8 +52,8 @@ public class TraceProcessor
 				PrintWriter outFile = outFiles.get(threadId);
 				if (outFile == null)
 				{
-					final FileWriter writer = new FileWriter("thread" + threadId + ".txt", false);
-					outFile = new PrintWriter(writer);
+					FileOutputStream outputStream = new FileOutputStream("thread" + threadId + ".txt");
+					outFile = new PrintWriter(new OutputStreamWriter(outputStream, Charset.defaultCharset()));
 					outFiles.put(threadId, outFile);
 				}
 

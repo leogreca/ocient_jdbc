@@ -1,6 +1,6 @@
 package com.ocient.cli;
 
-public final class FastStringTokenizer
+public final class FastStringTokenizer implements Cloneable
 {
 	private int index;
 	private String delim;

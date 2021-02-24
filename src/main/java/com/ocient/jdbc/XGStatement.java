@@ -44,6 +44,7 @@ import com.ocient.jdbc.proto.ClientWireProtocol.ConfirmationResponse;
 import com.ocient.jdbc.proto.ClientWireProtocol.ConfirmationResponse.ResponseType;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecuteExplain;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecuteExport;
+import com.ocient.jdbc.proto.ClientWireProtocol.ExplainPipelineRequest;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecuteInlinePlan;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecutePlan;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecuteQuery;
@@ -183,7 +184,7 @@ public class XGStatement implements Statement
 			{
 				try
 				{
-					if (conn.serverVersion == "")
+					if (conn.serverVersion.equals(""))
 					{
 						conn.fetchServerVersion();
 					}
@@ -228,7 +229,7 @@ public class XGStatement implements Statement
 		{
 			try
 			{
-				if (conn.serverVersion == "")
+				if (conn.serverVersion.equals(""))
 				{
 					conn.fetchServerVersion();
 				}
@@ -284,7 +285,7 @@ public class XGStatement implements Statement
 		{
 			try
 			{
-				if (conn.serverVersion == "")
+				if (conn.serverVersion.equals(""))
 				{
 					conn.fetchServerVersion();
 				}
@@ -345,7 +346,7 @@ public class XGStatement implements Statement
 		{
 			try
 			{
-				if (conn.serverVersion == "")
+				if (conn.serverVersion.equals(""))
 				{
 					conn.fetchServerVersion();
 				}
@@ -568,7 +569,7 @@ public class XGStatement implements Statement
 		{
 			throw SQLStates.SYNTAX_ERROR.cloneAndSpecify(String.format("Invalid uuid string: %s", uuid));
 		}
-		final ClientWireProtocol.CancelQueryResponse.Builder er = (ClientWireProtocol.CancelQueryResponse.Builder) sendAndReceive(uuid, Request.RequestType.CANCEL_QUERY, 0, false, Optional.empty());
+		sendAndReceive(uuid, Request.RequestType.CANCEL_QUERY, 0, false, Optional.empty());
 	}
 
 	@Override
@@ -725,7 +726,7 @@ public class XGStatement implements Statement
 				|| sql.toUpperCase().startsWith("LIST INDEXES ") || sql.toUpperCase().startsWith("GET SCHEMA") || sql.toUpperCase().startsWith("DESCRIBE VIEW ")
 				|| sql.toUpperCase().startsWith("DESCRIBE TABLE ") || sql.toUpperCase().startsWith("PLAN EXECUTE ") || sql.toUpperCase().startsWith("PLAN EXPLAIN ")
 				|| sql.toUpperCase().startsWith("LIST ALL QUERIES") || startsWithIgnoreCase(sql, "LIST ALL COMPLETED QUERIES") || sql.toUpperCase().startsWith("EXPORT TABLE ")
-				|| sql.toUpperCase().startsWith("EXPORT TRANSLATION ") || sql.toUpperCase().startsWith("LIST TABLE PRIVILEGES") || sql.toUpperCase().startsWith("EXPLAIN PIPELINE "))
+				|| sql.toUpperCase().startsWith("EXPORT TRANSLATION ") || sql.toUpperCase().startsWith("EXPORT VIEW") || sql.toUpperCase().startsWith("LIST TABLE PRIVILEGES"))
 			{
 				result = (XGResultSet) executeQuery(sql);
 				return true;
@@ -921,6 +922,10 @@ public class XGStatement implements Statement
 			else if (startsWithIgnoreCase(sql, "EXPORT TRANSLATION "))
 			{
 				return exportTranslationSQL(sql);
+			}
+			else if (startsWithIgnoreCase(sql, "EXPORT VIEW"))
+			{
+				return exportViewSQL(sql);
 			}
 		}
 		catch (final Exception e)
@@ -1182,6 +1187,37 @@ public class XGStatement implements Statement
 	}
 
 	// used by CLI
+	public String exportView(final String table) throws SQLException
+	{
+		final ClientWireProtocol.ExecuteExportResponse.Builder er = (ClientWireProtocol.ExecuteExportResponse.Builder) sendAndReceive(table, Request.RequestType.EXECUTE_EXPORT, 0, false,
+			Optional.empty());
+		return er.getExportStatement();
+	}
+
+	private ResultSet exportViewSQL(final String cmd) throws SQLException
+	{
+		LOGGER.log(Level.INFO, "Entered driver's exportView");
+		final String exportStr = exportView(cmd);
+		final ArrayList<Object> rs = new ArrayList<>();
+		final ArrayList<Object> row = new ArrayList<>();
+		row.add(exportStr);
+		rs.add(row);
+
+		result = conn.rs = new XGResultSet(conn, rs, this);
+		final Map<String, Integer> cols2Pos = new HashMap<>();
+		final TreeMap<Integer, String> pos2Cols = new TreeMap<>();
+		final Map<String, String> cols2Types = new HashMap<>();
+		cols2Pos.put("export", 0);
+		pos2Cols.put(0, "export");
+		cols2Types.put("export", "CHAR");
+		result.setCols2Pos(cols2Pos);
+		result.setPos2Cols(pos2Cols);
+		result.setCols2Types(cols2Types);
+
+		return result;
+	}	
+
+	// used by CLI
 	public String exportTable(final String table) throws SQLException
 	{
 		final ClientWireProtocol.ExecuteExportResponse.Builder er = (ClientWireProtocol.ExecuteExportResponse.Builder) sendAndReceive(table, Request.RequestType.EXECUTE_EXPORT, 0, false,
@@ -1246,14 +1282,14 @@ public class XGStatement implements Statement
 	// used by CLI
 	public String explainPipeline(final String table) throws SQLException
 	{
-		final ClientWireProtocol.ExecuteExportResponse.Builder er = (ClientWireProtocol.ExecuteExportResponse.Builder) sendAndReceive(table, Request.RequestType.EXECUTE_EXPORT, 0, false,
+		final ClientWireProtocol.ExplainPipelineResponse.Builder er = (ClientWireProtocol.ExplainPipelineResponse.Builder) sendAndReceive(table, Request.RequestType.EXPLAIN_PIPELINE, 0, false,
 			Optional.empty());
-		return er.getExportStatement();
+		return er.getPipelineStatement();
 	}
 
 	private ResultSet explainPipelineSQL(final String cmd) throws SQLException
 	{
-		LOGGER.log(Level.INFO, "Enetered driver's explainPipeline");
+		LOGGER.log(Level.INFO, "Entered driver's explainPipeline");
 		final String explainPipelineStr = explainPipeline(cmd);
 		final ArrayList<Object> rs = new ArrayList<>();
 		final ArrayList<Object> row = new ArrayList<>();
@@ -1750,7 +1786,7 @@ public class XGStatement implements Statement
 		{
 			throw SQLStates.SYNTAX_ERROR.cloneAndSpecify(String.format("Invalid uuid string: %s", uuid));
 		}
-		final ClientWireProtocol.KillQueryResponse.Builder er = (ClientWireProtocol.KillQueryResponse.Builder) sendAndReceive(uuid, Request.RequestType.KILL_QUERY, 0, false, Optional.empty());
+		sendAndReceive(uuid, Request.RequestType.KILL_QUERY, 0, false, Optional.empty());
 	}
 
 	private ResultSet listAllCompletedQueries() throws SQLException
@@ -2224,6 +2260,14 @@ public class XGStatement implements Statement
 					b1 = ExecuteExport.newBuilder();
 					br = ClientWireProtocol.ExecuteExportResponse.newBuilder();
 					setWrapped = b2.getClass().getMethod("setExecuteExport", c);
+					forceFlag = false;
+					redirectFlag = false;
+					break;
+				case EXPLAIN_PIPELINE:
+					c = ExplainPipelineRequest.class;
+					b1 = ExplainPipelineRequest.newBuilder();
+					br = ClientWireProtocol.ExplainPipelineResponse.newBuilder();
+					setWrapped = b2.getClass().getMethod("setExplainPipeline", c);
 					forceFlag = false;
 					redirectFlag = false;
 					break;
