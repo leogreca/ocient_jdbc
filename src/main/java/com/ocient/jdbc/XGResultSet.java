@@ -485,140 +485,8 @@ public final class XGResultSet implements ResultSet
 				final byte t = bb.get(offset[0]);
 				offset[0]++;
 				assert t == type || t == 7; // Array type or NULL
-				if (t == 1) // INT
-				{
-					retval.add(bb.getInt(offset[0]), i);
-					offset[0] += 4;
-				}
-				else if (t == 2) // LONG
-				{
-					retval.add(bb.getLong(offset[0]), i);
-					offset[0] += 8;
-				}
-				else if (t == 3) // FLOAT
-				{
-					retval.add(Float.intBitsToFloat(bb.getInt(offset[0])), i);
-					offset[0] += 4;
-				}
-				else if (t == 4) // DOUBLE
-				{
-					retval.add(Double.longBitsToDouble(bb.getLong(offset[0])), i);
-					offset[0] += 8;
-				}
-				else if (t == 5) // STRING
-				{
-					final int stringLength = bb.getInt(offset[0]);
-					offset[0] += 4;
-					final byte[] dst = new byte[stringLength];
-					((Buffer) bb).position(offset[0]);
-					bb.get(dst);
-					retval.add(new String(dst, Charsets.UTF_8), i);
-					offset[0] += stringLength;
-				}
-				else if (t == 6) // Timestamp
-				{
-					retval.add(new XGTimestamp(bb.getLong(offset[0])), i);
-					offset[0] += 8;
-				}
-				else if (t == 7) // Null
-				{
-					retval.add(null, i);
-				}
-				else if (t == 8) // BOOL
-				{
-					retval.add(bb.get(offset[0]) != 0, i);
-					offset[0]++;
-				}
-				else if (t == 9) // BINARY
-				{
-					final int stringLength = bb.getInt(offset[0]);
-					offset[0] += 4;
-					final byte[] dst = new byte[stringLength];
-					((Buffer) bb).position(offset[0]);
-					bb.get(dst);
-					retval.add(dst, i);
-					offset[0] += stringLength;
-				}
-				else if (t == 10) // BYTE
-				{
-					retval.add(bb.get(offset[0]), i);
-					offset[0]++;
-				}
-				else if (t == 11) // SHORT
-				{
-					retval.add(bb.getShort(offset[0]), i);
-					offset[0] += 2;
-				}
-				else if (t == 12) // TIME
-				{
-					retval.add(new XGTime(bb.getLong(offset[0])), i);
-					offset[0] += 8;
-				}
-				else if (t == 13) // DECIMAL
-				{
-					final int precision = bb.get(offset[0]);
-					retval.add(getDecimalFromBuffer(bb, offset[0]), i);
-					offset[0] += 2 + bcdLength(precision);
-				}
-				else if (t == 15) // UUID
-				{
-					final long high = bb.getLong(offset[0]);
-					offset[0] += 8;
-					final long low = bb.getLong(offset[0]);
-					offset[0] += 8;
-					retval.add(new UUID(high, low), i);
-				}
-				else if (t == 16) // ST_POINT
-				{
-					final double lon = Double.longBitsToDouble(bb.getLong(offset[0]));
-					offset[0] += 8;
-					final double lat = Double.longBitsToDouble(bb.getLong(offset[0]));
-					offset[0] += 8;
-					retval.add(new StPoint(lon, lat), i);
-				}
-				else if (t == 17) // IP
-				{
-					final byte[] bytes = new byte[16];
-					((Buffer) bb).position(offset[0]);
-					bb.get(bytes);
-					offset[0] += 16;
-					retval.add(InetAddress.getByAddress(bytes), i);
-				}
-				else if (t == 18) // IPV4
-				{
-					final byte[] bytes = new byte[4];
-					((Buffer) bb).position(offset[0]);
-					bb.get(bytes);
-					offset[0] += 4;
-					retval.add(InetAddress.getByAddress(bytes), i);
-				}
-				else if (t == 19) // Date
-				{
-					retval.add(new XGDate(bb.getLong(offset[0])), i);
-					offset[0] += 8;
-				}
-				else if (t == 20) // Timestamp w/ nanos
-				{
-					final long nanos = bb.getLong(offset[0]);
-					final long seconds = nanos / 1000000000;
-					final XGTimestamp ts = new XGTimestamp(seconds * 1000);
-					ts.setNanos((int) (nanos - seconds * 1000000000));
-					retval.add(ts, i);
-					offset[0] += 8;
-				}
-				else if (t == 21) // Time w/ nanos
-				{
-					final long nanos = bb.getLong(offset[0]);
-					final long seconds = nanos / 1000000000;
-					final XGTime time = new XGTime(seconds * 1000);
-					time.setNanos((int) (nanos - seconds * 1000000000));
-					retval.add(time, i);
-					offset[0] += 8;
-				}
-				else
-				{
-					throw SQLStates.INVALID_COLUMN_TYPE.clone();
-				}
+				Boolean allowArrays = false;
+				retval.add(getValueFromBuffer(bb, t, offset, allowArrays), i);
 			}
 		}
 
@@ -2667,6 +2535,188 @@ public final class XGResultSet implements ResultSet
 		throw new SQLFeatureNotSupportedException();
 	}
 
+	private XGTuple getTupleFromBuffer(final ByteBuffer bb, int[] mutableOffset) throws SQLException, java.net.UnknownHostException
+	{
+		final int numElements = bb.getInt(mutableOffset[0]);
+		mutableOffset[0] += 4;
+
+		ArrayList<Object> components = new ArrayList<Object>();
+		ArrayList<String> innerTypeNames = new ArrayList<String>();
+		assert(numElements > 0);
+		for(int i = 0; i < numElements ; i++)
+		{
+			final byte type = bb.get(mutableOffset[0]);
+			mutableOffset[0]++;
+			boolean allowArrays = true;
+			components.add(getValueFromBuffer(bb, type, mutableOffset, allowArrays));
+			innerTypeNames.add(XGResultSetMetaData.type2Name(type));
+		}
+
+		return new XGTuple(components, innerTypeNames, conn, stmt);
+	}
+
+	private Object getValueFromBuffer(final ByteBuffer bb, final byte type, int[] mutableOffset, Boolean allowArrays) throws SQLException, java.net.UnknownHostException
+	{
+		int offset = mutableOffset[0];
+		Object retval = null;
+		if (type == 1) // INT
+		{
+			retval = bb.getInt(offset);
+			offset += 4;
+		}
+		else if (type == 2) // LONG
+		{
+			retval = bb.getLong(offset);
+			offset += 8;
+		}
+		else if (type == 3) // FLOAT
+		{
+			retval = Float.intBitsToFloat(bb.getInt(offset));
+			offset += 4;
+		}
+		else if (type == 4) // DOUBLE
+		{
+			retval = Double.longBitsToDouble(bb.getLong(offset));
+			offset += 8;
+		}
+		else if (type == 5) // STRING
+		{
+			final int stringLength = bb.getInt(offset);
+			offset += 4;
+			final byte[] dst = new byte[stringLength];
+			((Buffer) bb).position(offset);
+			bb.get(dst);
+			retval = new String(dst, Charsets.UTF_8);
+			offset += stringLength;
+		}
+		else if (type == 6) // Timestamp
+		{
+			retval = new XGTimestamp(bb.getLong(offset));
+			offset += 8;
+		}
+		else if (type == 7) // Null
+		{
+			retval = null;
+		}
+		else if (type == 8) // BOOL
+		{
+			retval = bb.get(offset) != 0;
+			offset++;
+		}
+		else if (type == 9) // BINARY
+		{
+			final int stringLength = bb.getInt(offset);
+			offset += 4;
+			final byte[] dst = new byte[stringLength];
+			((Buffer) bb).position(offset);
+			bb.get(dst);
+			retval = dst;
+			offset += stringLength;
+		}
+		else if (type == 10) // BYTE
+		{
+			retval = bb.get(offset);
+			offset++;
+		}
+		else if (type == 11) // SHORT
+		{
+			retval = bb.getShort(offset);
+			offset += 2;
+		}
+		else if (type == 12) // TIME
+		{
+			retval = new XGTime(bb.getLong(offset));
+			offset += 8;
+		}
+		else if (type == 13) // DECIMAL
+		{
+			final int precision = bb.get(offset);
+			retval = getDecimalFromBuffer(bb, offset);
+			offset += 2 + bcdLength(precision);
+		}
+		else if (type == 14 && allowArrays) // ARRAY
+		{
+			// Need to use int[] so we can pass an integer by reference.
+			// Cannot use 'new Integer'. It goes by value.
+			final int[] off = new int[1];
+			off[0] = offset;
+			final XGArray array = getArrayFromBuffer(bb, off);
+			offset = off[0];
+			retval = array;
+		}
+		else if (type == 15) // UUID
+		{
+			final long high = bb.getLong(offset);
+			offset += 8;
+			final long low = bb.getLong(offset);
+			offset += 8;
+			retval = new UUID(high, low);
+		}
+		else if (type == 16) // ST_POINT
+		{
+			final double lon = Double.longBitsToDouble(bb.getLong(offset));
+			offset += 8;
+			final double lat = Double.longBitsToDouble(bb.getLong(offset));
+			offset += 8;
+			retval = new StPoint(lon, lat);
+		}
+		else if (type == 17) // IP
+		{
+			final byte[] bytes = new byte[16];
+			((Buffer) bb).position(offset);
+			bb.get(bytes);
+			offset += 16;
+			retval = InetAddress.getByAddress(bytes);
+		}
+		else if (type == 18) // IPV4
+		{
+			final byte[] bytes = new byte[4];
+			((Buffer) bb).position(offset);
+			bb.get(bytes);
+			offset += 4;
+			retval = InetAddress.getByAddress(bytes);
+		}
+		else if (type == 19) // Date
+		{
+			retval = new XGDate(bb.getLong(offset));
+			offset += 8;
+		}
+		else if (type == 20) // Timestamp w/ nanos
+		{
+			final long nanos = bb.getLong(offset);
+			final long seconds = nanos / 1000000000;
+			final XGTimestamp ts = new XGTimestamp(seconds * 1000);
+			ts.setNanos((int) (nanos - seconds * 1000000000));
+			retval = ts;
+			offset += 8;
+		}
+		else if (type == 21) // Time w/ nanos
+		{
+			final long nanos = bb.getLong(offset);
+			final long seconds = nanos / 1000000000;
+			final XGTime time = new XGTime(seconds * 1000);
+			time.setNanos((int) (nanos - seconds * 1000000000));
+			retval = time;
+			offset += 8;
+		}
+		else if (type == 22) //tuple
+		{
+			//use int[] as a mutable int to pass by reference
+			final int[] off = new int[1];
+			off[0] = offset;
+			final XGTuple tuple = getTupleFromBuffer(bb, off);
+			offset = off[0];
+			retval = tuple;
+		}
+		else
+		{
+			throw SQLStates.INVALID_COLUMN_TYPE.clone();
+		}
+
+		mutableOffset[0] = offset;
+		return retval;
+	}
+
 	/*
 	 * Returns true if we actually received data, false if there was no data to
 	 * merge
@@ -2704,150 +2754,10 @@ public final class XGResultSet implements ResultSet
 						// Get type tag
 						final byte type = bb.get(offset);
 						offset++;
-						if (type == 1) // INT
-						{
-							alo.add(bb.getInt(offset));
-							offset += 4;
-						}
-						else if (type == 2) // LONG
-						{
-							alo.add(bb.getLong(offset));
-							offset += 8;
-						}
-						else if (type == 3) // FLOAT
-						{
-							alo.add(Float.intBitsToFloat(bb.getInt(offset)));
-							offset += 4;
-						}
-						else if (type == 4) // DOUBLE
-						{
-							alo.add(Double.longBitsToDouble(bb.getLong(offset)));
-							offset += 8;
-						}
-						else if (type == 5) // STRING
-						{
-							final int stringLength = bb.getInt(offset);
-							offset += 4;
-							final byte[] dst = new byte[stringLength];
-							((Buffer) bb).position(offset);
-							bb.get(dst);
-							alo.add(new String(dst, Charsets.UTF_8));
-							offset += stringLength;
-						}
-						else if (type == 6) // Timestamp
-						{
-							alo.add(new XGTimestamp(bb.getLong(offset)));
-							offset += 8;
-						}
-						else if (type == 7) // Null
-						{
-							alo.add(null);
-						}
-						else if (type == 8) // BOOL
-						{
-							alo.add(bb.get(offset) != 0);
-							offset++;
-						}
-						else if (type == 9) // BINARY
-						{
-							final int stringLength = bb.getInt(offset);
-							offset += 4;
-							final byte[] dst = new byte[stringLength];
-							((Buffer) bb).position(offset);
-							bb.get(dst);
-							alo.add(dst);
-							offset += stringLength;
-						}
-						else if (type == 10) // BYTE
-						{
-							alo.add(bb.get(offset));
-							offset++;
-						}
-						else if (type == 11) // SHORT
-						{
-							alo.add(bb.getShort(offset));
-							offset += 2;
-						}
-						else if (type == 12) // TIME
-						{
-							alo.add(new XGTime(bb.getLong(offset)));
-							offset += 8;
-						}
-						else if (type == 13) // DECIMAL
-						{
-							final int precision = bb.get(offset);
-							alo.add(getDecimalFromBuffer(bb, offset));
-							offset += 2 + bcdLength(precision);
-						}
-						else if (type == 14) // ARRAY
-						{
-							// Need to used int[] so we can pass an integer by reference.
-							// Cannot use 'new Integer'. It goes by value.
-							final int[] off = new int[1];
-							off[0] = offset;
-							final XGArray array = getArrayFromBuffer(bb, off);
-							offset = off[0];
-							alo.add(array);
-						}
-						else if (type == 15) // UUID
-						{
-							final long high = bb.getLong(offset);
-							offset += 8;
-							final long low = bb.getLong(offset);
-							offset += 8;
-							alo.add(new UUID(high, low));
-						}
-						else if (type == 16) // ST_POINT
-						{
-							final double lon = Double.longBitsToDouble(bb.getLong(offset));
-							offset += 8;
-							final double lat = Double.longBitsToDouble(bb.getLong(offset));
-							offset += 8;
-							alo.add(new StPoint(lon, lat));
-						}
-						else if (type == 17) // IP
-						{
-							final byte[] bytes = new byte[16];
-							((Buffer) bb).position(offset);
-							bb.get(bytes);
-							offset += 16;
-							alo.add(InetAddress.getByAddress(bytes));
-						}
-						else if (type == 18) // IPV4
-						{
-							final byte[] bytes = new byte[4];
-							((Buffer) bb).position(offset);
-							bb.get(bytes);
-							offset += 4;
-							alo.add(InetAddress.getByAddress(bytes));
-						}
-						else if (type == 19) // Date
-						{
-							alo.add(new XGDate(bb.getLong(offset)));
-							offset += 8;
-						}
-						else if (type == 20) // Timestamp w/ nanos
-						{
-							final long nanos = bb.getLong(offset);
-							final long seconds = nanos / 1000000000;
-							final XGTimestamp ts = new XGTimestamp(seconds * 1000);
-							ts.setNanos((int) (nanos - seconds * 1000000000));
-							alo.add(ts);
-							offset += 8;
-						}
-						else if (type == 21) // Time w/ nanos
-						{
-							final long nanos = bb.getLong(offset);
-							final long seconds = nanos / 1000000000;
-							final XGTime time = new XGTime(seconds * 1000);
-							time.setNanos((int) (nanos - seconds * 1000000000));
-							alo.add(time);
-							offset += 8;
-						}
-						else
-						{
-							throw SQLStates.INVALID_COLUMN_TYPE.clone();
-						}
+						int[] mutableOffset = new int[] {offset};
+						Boolean allowArrays = true;
+						alo.add(getValueFromBuffer(bb, type, mutableOffset, allowArrays));
+						offset = mutableOffset[0];
 					}
 
 					newRs.add(alo);
