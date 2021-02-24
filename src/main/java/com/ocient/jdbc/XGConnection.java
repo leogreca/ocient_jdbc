@@ -52,7 +52,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
@@ -485,8 +484,7 @@ public class XGConnection implements Connection
 			}
 
 			final byte[] iv = ivString.toByteArray();
-			// final IvParameterSpec ips = new IvParameterSpec(iv);
-			final GCMParameterSpec gps = new GCMParameterSpec(128, iv);
+			final IvParameterSpec ips = new IvParameterSpec(iv);
 
 			// Create a key specification first, based on our key input.
 			final SecretKey aesKey = new SecretKeySpec(key, "AES");
@@ -495,10 +493,9 @@ public class XGConnection implements Connection
 			// Create a Cipher for encrypting the data using the key we created.
 			Cipher encryptCipher;
 
-			// encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-			encryptCipher = Cipher.getInstance("AES/GCM/NoPadding");
+			encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 			// Initialize the Cipher with key and parameters
-			encryptCipher.init(Cipher.ENCRYPT_MODE, aesKey, gps);
+			encryptCipher.init(Cipher.ENCRYPT_MODE, aesKey, ips);
 
 			// Our cleartext
 			final byte[] cleartext = pwd.getBytes(StandardCharsets.UTF_8);
