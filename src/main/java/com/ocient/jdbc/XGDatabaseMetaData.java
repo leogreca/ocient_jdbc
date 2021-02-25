@@ -329,7 +329,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -349,7 +348,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -464,7 +462,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -483,7 +480,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -509,7 +505,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -911,7 +906,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -1084,7 +1078,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -1396,7 +1389,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -1415,7 +1407,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -1448,7 +1439,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -1474,7 +1464,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -1568,7 +1557,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -1588,7 +1576,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -1608,7 +1595,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -1628,7 +1614,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -1674,7 +1659,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -1693,7 +1677,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
@@ -1821,7 +1804,6 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 			stmt.close();
 			throw e;
 		}
-		stmt.close();
 		return retval;
 	}
 
