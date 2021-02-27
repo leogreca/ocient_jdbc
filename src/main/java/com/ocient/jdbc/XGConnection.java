@@ -32,6 +32,7 @@ import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -51,6 +52,7 @@ import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHParameterSpec;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.SSLContext;
@@ -63,7 +65,7 @@ import javax.net.ssl.X509TrustManager;
 
 import com.google.protobuf.ByteString;
 import com.ocient.jdbc.proto.ClientWireProtocol;
-import com.ocient.jdbc.proto.ClientWireProtocol.ClientConnection;
+import com.ocient.jdbc.proto.ClientWireProtocol.ClientConnectionGCM;
 import com.ocient.jdbc.proto.ClientWireProtocol.CloseConnection;
 import com.ocient.jdbc.proto.ClientWireProtocol.ConfirmationResponse;
 import com.ocient.jdbc.proto.ClientWireProtocol.ConfirmationResponse.ResponseType;
@@ -406,22 +408,22 @@ public class XGConnection implements Connection
 		{
 			LOGGER.log(Level.INFO, "Beginning handshake");
 			// send first part of handshake - contains userid
-			final ClientWireProtocol.ClientConnection.Builder builder = ClientWireProtocol.ClientConnection.newBuilder();
+			final ClientWireProtocol.ClientConnectionGCM.Builder builder = ClientWireProtocol.ClientConnectionGCM.newBuilder();
 			builder.setUserid(userid);
 			builder.setDatabase(database);
 			builder.setClientid(client);
 			builder.setVersion(driverVersion);
-			final ClientConnection msg = builder.build();
+			final ClientConnectionGCM msg = builder.build();
 			ClientWireProtocol.Request.Builder b2 = ClientWireProtocol.Request.newBuilder();
-			b2.setType(ClientWireProtocol.Request.RequestType.CLIENT_CONNECTION);
-			b2.setClientConnection(msg);
+			b2.setType(ClientWireProtocol.Request.RequestType.CLIENT_CONNECTION_GCM);
+			b2.setClientConnectionGcm(msg);
 			Request wrapper = b2.build();
 			out.write(intToBytes(wrapper.getSerializedSize()));
 			wrapper.writeTo(out);
 			out.flush();
 
 			// get response
-			final ClientWireProtocol.ClientConnectionResponse.Builder ccr = ClientWireProtocol.ClientConnectionResponse.newBuilder();
+			final ClientWireProtocol.ClientConnectionGCMResponse.Builder ccr = ClientWireProtocol.ClientConnectionGCMResponse.newBuilder();
 			int length = getLength();
 			byte[] data = new byte[length];
 			readBytes(data);
@@ -484,7 +486,8 @@ public class XGConnection implements Connection
 			}
 
 			final byte[] iv = ivString.toByteArray();
-			final IvParameterSpec ips = new IvParameterSpec(iv);
+			// We are using a 16 byte authentication tag on the server side. 16 * 8 = 128.
+			final GCMParameterSpec gps = new GCMParameterSpec(128, iv);
 
 			// Create a key specification first, based on our key input.
 			final SecretKey aesKey = new SecretKeySpec(key, "AES");
@@ -493,9 +496,9 @@ public class XGConnection implements Connection
 			// Create a Cipher for encrypting the data using the key we created.
 			Cipher encryptCipher;
 
-			encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			encryptCipher = Cipher.getInstance("AES/GCM/NoPadding");
 			// Initialize the Cipher with key and parameters
-			encryptCipher.init(Cipher.ENCRYPT_MODE, aesKey, ips);
+			encryptCipher.init(Cipher.ENCRYPT_MODE, aesKey, gps);
 
 			// Our cleartext
 			final byte[] cleartext = pwd.getBytes(StandardCharsets.UTF_8);
@@ -509,7 +512,7 @@ public class XGConnection implements Connection
 
 			// send handshake part2
 			LOGGER.log(Level.INFO, "Beginning handshake part 2");
-			final ClientWireProtocol.ClientConnection2.Builder hand2 = ClientWireProtocol.ClientConnection2.newBuilder();
+			final ClientWireProtocol.ClientConnectionGCM2.Builder hand2 = ClientWireProtocol.ClientConnectionGCM2.newBuilder();
 			hand2.setCipher(ByteString.copyFrom(ciphertext));
 			hand2.setPubKey(myPubKey);
 			hand2.setHmac(ByteString.copyFrom(calculatedMac));
@@ -526,17 +529,17 @@ public class XGConnection implements Connection
 			{
 				hand2.setForce(false);
 			}
-			final ClientWireProtocol.ClientConnection2 msg2 = hand2.build();
+			final ClientWireProtocol.ClientConnectionGCM2 msg2 = hand2.build();
 			b2 = ClientWireProtocol.Request.newBuilder();
-			b2.setType(ClientWireProtocol.Request.RequestType.CLIENT_CONNECTION2);
-			b2.setClientConnection2(msg2);
+			b2.setType(ClientWireProtocol.Request.RequestType.CLIENT_CONNECTION_GCM2);
+			b2.setClientConnectionGcm2(msg2);
 			wrapper = b2.build();
 			out.write(intToBytes(wrapper.getSerializedSize()));
 			wrapper.writeTo(out);
 			out.flush();
 
 			// getResponse
-			final ClientWireProtocol.ClientConnection2Response.Builder ccr2 = ClientWireProtocol.ClientConnection2Response.newBuilder();
+			final ClientWireProtocol.ClientConnectionGCM2Response.Builder ccr2 = ClientWireProtocol.ClientConnectionGCM2Response.newBuilder();
 			length = getLength();
 			data = new byte[length];
 			readBytes(data);
