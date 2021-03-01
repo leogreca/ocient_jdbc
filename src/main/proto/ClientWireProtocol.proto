@@ -15,9 +15,9 @@ message ClientConnection
 
 message ClientConnectionGCM
 {
-    string userid = 1;
-    string database = 2;
-    string clientid = 3;
+	string userid = 1;
+	string database = 2;
+	string clientid = 3;
 	string version = 4;
 }
 
@@ -39,16 +39,16 @@ message ClientConnection2
 {
 	bytes cipher = 1;
 	bool force = 2; //Force = true means not allowed to redirect the connection
-   bytes hmac = 3;
-   string pubKey = 4;
+	bytes hmac = 3;
+	string pubKey = 4;
 }
 
 message ClientConnectionGCM2
 {
 	bytes cipher = 1;
 	bool force = 2; //Force = true means not allowed to redirect the connection
-   bytes hmac = 3;
-   string pubKey = 4;
+	bytes hmac = 3;
+	string pubKey = 4;
 }
 
 message SecondaryInterfaceList
