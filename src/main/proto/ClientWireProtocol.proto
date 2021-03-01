@@ -13,7 +13,22 @@ message ClientConnection
 	string version = 4;
 }
 
+message ClientConnectionGCM
+{
+	string userid = 1;
+	string database = 2;
+	string clientid = 3;
+	string version = 4;
+}
+
 message ClientConnectionResponse 
+{
+    ConfirmationResponse response = 1;
+    bytes iv = 2;
+    string pubKey = 3;
+}
+
+message ClientConnectionGCMResponse 
 {
     ConfirmationResponse response = 1;
     bytes iv = 2;
@@ -24,8 +39,16 @@ message ClientConnection2
 {
 	bytes cipher = 1;
 	bool force = 2; //Force = true means not allowed to redirect the connection
-   bytes hmac = 3;
-   string pubKey = 4;
+	bytes hmac = 3;
+	string pubKey = 4;
+}
+
+message ClientConnectionGCM2
+{
+	bytes cipher = 1;
+	bool force = 2; //Force = true means not allowed to redirect the connection
+	bytes hmac = 3;
+	string pubKey = 4;
 }
 
 message SecondaryInterfaceList
@@ -34,6 +57,16 @@ message SecondaryInterfaceList
 }
 
 message ClientConnection2Response
+{
+	ConfirmationResponse response = 1;
+	bool redirect = 2; //Redirect = true, means we are telling client to connect elsewhere
+	string redirectHost = 3;
+	fixed32 redirectPort = 4;
+	repeated string cmdcomps = 5; //If redirect = false, this is a list of all cmdcomps
+	repeated SecondaryInterfaceList secondary = 6;
+}
+
+message ClientConnectionGCM2Response
 {
 	ConfirmationResponse response = 1;
 	bool redirect = 2; //Redirect = true, means we are telling client to connect elsewhere
@@ -358,6 +391,8 @@ message Request
 		// 30 used above
 		SET_PARAMETER = 34;
 		EXPLAIN_PIPELINE = 35;
+		CLIENT_CONNECTION_GCM = 36;
+		CLIENT_CONNECTION_GCM2 = 37;
     }
 
     RequestType type = 1;
@@ -399,6 +434,8 @@ message Request
 		// 31 is defined above
 		SetParameter set_parameter = 35;
 		ExplainPipelineRequest explain_pipeline = 36;
+		ClientConnectionGCM client_connection_gcm = 37;
+		ClientConnectionGCM2 client_connection_gcm2 = 38;
     }
 }
 

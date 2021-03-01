@@ -52,6 +52,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
@@ -64,6 +65,7 @@ import javax.net.ssl.X509TrustManager;
 import com.google.protobuf.ByteString;
 import com.ocient.jdbc.proto.ClientWireProtocol;
 import com.ocient.jdbc.proto.ClientWireProtocol.ClientConnection;
+import com.ocient.jdbc.proto.ClientWireProtocol.ClientConnectionGCM;
 import com.ocient.jdbc.proto.ClientWireProtocol.CloseConnection;
 import com.ocient.jdbc.proto.ClientWireProtocol.ConfirmationResponse;
 import com.ocient.jdbc.proto.ClientWireProtocol.ConfirmationResponse.ResponseType;
@@ -402,9 +404,281 @@ public class XGConnection implements Connection
 
 	private void clientHandshake(final String userid, final String pwd, final String db, final boolean shouldRequestVersion) throws Exception
 	{
+		final String handshakeStr = properties.getProperty("handshake", "GCM").toUpperCase();
+		if(handshakeStr.equals("CBC")){
+			clientHandshakeCBC(userid, pwd, db, shouldRequestVersion);
+		} else {
+			// GCM
+			clientHandshakeGCM(userid, pwd, db, shouldRequestVersion);
+		}
+	}
+	// DB-15559 make this and clientHandshakeCBC share code. Didn't have time to do this right now.
+	private void clientHandshakeGCM(final String userid, final String pwd, final String db, final boolean shouldRequestVersion) throws Exception
+	{
 		try
 		{
-			LOGGER.log(Level.INFO, "Beginning handshake");
+			LOGGER.log(Level.INFO, "Beginning GCM handshake");
+			// send first part of handshake - contains userid
+			final ClientWireProtocol.ClientConnectionGCM.Builder builder = ClientWireProtocol.ClientConnectionGCM.newBuilder();
+			builder.setUserid(userid);
+			builder.setDatabase(database);
+			builder.setClientid(client);
+			builder.setVersion(driverVersion);
+			final ClientConnectionGCM msg = builder.build();
+			ClientWireProtocol.Request.Builder b2 = ClientWireProtocol.Request.newBuilder();
+			b2.setType(ClientWireProtocol.Request.RequestType.CLIENT_CONNECTION_GCM);
+			b2.setClientConnectionGcm(msg);
+			Request wrapper = b2.build();
+			out.write(intToBytes(wrapper.getSerializedSize()));
+			wrapper.writeTo(out);
+			out.flush();
+
+			// get response
+			final ClientWireProtocol.ClientConnectionGCMResponse.Builder ccr = ClientWireProtocol.ClientConnectionGCMResponse.newBuilder();
+			int length = getLength();
+			byte[] data = new byte[length];
+			readBytes(data);
+			ccr.mergeFrom(data);
+			ConfirmationResponse response = ccr.getResponse();
+			ResponseType rType = response.getType();
+			processResponseType(rType, response);
+			final ByteString ivString = ccr.getIv();
+			byte[] key;
+			byte[] macKey;
+			String myPubKey;
+
+			try
+			{
+				String keySpec = ccr.getPubKey();
+				keySpec = keySpec.replace("-----BEGIN PUBLIC KEY-----\n", "");
+				keySpec = keySpec.replace("-----END PUBLIC KEY-----\n", "");
+				final byte[] keyBytes = Base64.getMimeDecoder().decode(keySpec.getBytes(StandardCharsets.UTF_8));
+				final X509EncodedKeySpec x509keySpec = new X509EncodedKeySpec(keyBytes);
+				final KeyFactory keyFact = KeyFactory.getInstance("DH");
+				final DHPublicKey pubKey = (DHPublicKey) keyFact.generatePublic(x509keySpec);
+				final DHParameterSpec params = pubKey.getParams();
+
+				final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("DH");
+				keyGen.initialize(params);
+				final KeyPair kp = keyGen.generateKeyPair();
+
+				final KeyAgreement ka = KeyAgreement.getInstance("DiffieHellman");
+				ka.init(kp.getPrivate());
+				ka.doPhase(pubKey, true);
+				final byte[] secret = ka.generateSecret();
+
+				final byte[] buffer = new byte[5 + secret.length];
+				buffer[0] = (byte) ((secret.length & 0xff000000) >> 24);
+				buffer[1] = (byte) ((secret.length & 0xff0000) >> 16);
+				buffer[2] = (byte) ((secret.length & 0xff00) >> 8);
+				buffer[3] = (byte) (secret.length & 0xff);
+				System.arraycopy(secret, 0, buffer, 5, secret.length);
+
+				buffer[4] = 0x00;
+				MessageDigest sha = MessageDigest.getInstance("SHA-256");
+				key = sha.digest(buffer);
+
+				buffer[4] = 0x01;
+				sha = MessageDigest.getInstance("SHA-256");
+				macKey = sha.digest(buffer);
+
+				final PublicKey clientPub = kp.getPublic();
+				myPubKey = "-----BEGIN PUBLIC KEY-----\n" + Base64.getMimeEncoder().encodeToString(clientPub.getEncoded()) + "\n-----END PUBLIC KEY-----\n";
+			}
+			catch(RuntimeException e)
+			{
+				LOGGER.log(Level.WARNING, String.format("Exception %s occurred during handshake with message %s", e.toString(), e.getMessage()));
+				throw e;
+			}
+			catch (final Exception e)
+			{
+				LOGGER.log(Level.WARNING, String.format("Exception %s occurred during handshake with message %s", e.toString(), e.getMessage()));
+				throw e;
+			}
+
+			final byte[] iv = ivString.toByteArray();
+			// We are using a 16 byte authentication tag on the server side. 16 * 8 = 128.
+			final GCMParameterSpec gps = new GCMParameterSpec(128, iv);
+
+			// Create a key specification first, based on our key input.
+			final SecretKey aesKey = new SecretKeySpec(key, "AES");
+			final SecretKey hmacKey = new SecretKeySpec(macKey, "AES");
+
+			// Create a Cipher for encrypting the data using the key we created.
+			Cipher encryptCipher;
+
+			encryptCipher = Cipher.getInstance("AES/GCM/NoPadding");
+			// Initialize the Cipher with key and parameters
+			encryptCipher.init(Cipher.ENCRYPT_MODE, aesKey, gps);
+
+			// Our cleartext
+			final byte[] cleartext = pwd.getBytes(StandardCharsets.UTF_8);
+
+			// Encrypt the cleartext
+			final byte[] ciphertext = encryptCipher.doFinal(cleartext);
+
+			final Mac hmac = Mac.getInstance("HmacSha256");
+			hmac.init(hmacKey);
+			final byte[] calculatedMac = hmac.doFinal(ciphertext);
+
+			// send handshake part2
+			LOGGER.log(Level.INFO, "Beginning handshake part 2");
+			final ClientWireProtocol.ClientConnectionGCM2.Builder hand2 = ClientWireProtocol.ClientConnectionGCM2.newBuilder();
+			hand2.setCipher(ByteString.copyFrom(ciphertext));
+			hand2.setPubKey(myPubKey);
+			hand2.setHmac(ByteString.copyFrom(calculatedMac));
+			if (force)
+			{
+				hand2.setForce(true);
+			}
+			else if (oneShotForce)
+			{
+				oneShotForce = false;
+				hand2.setForce(true);
+			}
+			else
+			{
+				hand2.setForce(false);
+			}
+			final ClientWireProtocol.ClientConnectionGCM2 msg2 = hand2.build();
+			b2 = ClientWireProtocol.Request.newBuilder();
+			b2.setType(ClientWireProtocol.Request.RequestType.CLIENT_CONNECTION_GCM2);
+			b2.setClientConnectionGcm2(msg2);
+			wrapper = b2.build();
+			out.write(intToBytes(wrapper.getSerializedSize()));
+			wrapper.writeTo(out);
+			out.flush();
+
+			// getResponse
+			final ClientWireProtocol.ClientConnectionGCM2Response.Builder ccr2 = ClientWireProtocol.ClientConnectionGCM2Response.newBuilder();
+			length = getLength();
+			data = new byte[length];
+			readBytes(data);
+			ccr2.mergeFrom(data);
+			response = ccr2.getResponse();
+			rType = response.getType();
+
+			LOGGER.log(Level.INFO, "Handshake response received");
+			final SQLException state = new SQLException(response.getReason(), response.getSqlState(), response.getVendorCode());
+			// if we had a failed handshake, then something went wrong with verification on
+			// the server, just try again(up to 5 times)
+			if (SQLStates.FAILED_HANDSHAKE.equals(state) && retryCounter++ < 5)
+			{
+				LOGGER.log(Level.INFO, "Handshake failed, retrying");
+				clientHandshake(userid, pwd, db, shouldRequestVersion);
+				return;
+			}
+			retryCounter = 0;
+			processResponseType(rType, response);
+
+			final int count = ccr2.getCmdcompsCount();
+			cmdcomps.clear();
+			for (int i = 0; i < count; i++)
+			{
+				cmdcomps.add(ccr2.getCmdcomps(i));
+			}
+			LOGGER.log(Level.INFO, "Clearing and adding new secondary interfaces");
+			secondaryInterfaces.clear();
+			for (int i = 0; i < ccr2.getSecondaryCount(); i++)
+			{
+				secondaryInterfaces.add(new ArrayList<String>());
+				for (int j = 0; j < ccr2.getSecondary(i).getAddressCount(); j++)
+				{
+					// Do hostname / IP translation here
+					String connInfo = ccr2.getSecondary(i).getAddress(j);
+					final StringTokenizer tokens = new StringTokenizer(connInfo, ":", false);
+					final String connHost = tokens.nextToken();
+					final int connPort = Integer.parseInt(tokens.nextToken());
+					final InetAddress[] addrs = InetAddress.getAllByName(connHost);
+					for (final InetAddress addr : addrs)
+					{
+						connInfo = addr.toString().substring(addr.toString().indexOf('/') + 1) + ":" + connPort;
+						secondaryInterfaces.get(i).add(connInfo);
+					}
+				}
+			}
+
+			// Figure out what secondary index it is
+			final String combined = ip + ":" + portNum;
+			for (final ArrayList<String> list : secondaryInterfaces)
+			{
+				int index = 0;
+				for (final String address : list)
+				{
+					if (address.equals(combined))
+					{
+						secondaryIndex = index;
+						break;
+					}
+
+					index++;
+				}
+			}
+
+			LOGGER.log(Level.INFO, String.format("Using secondary index %d", secondaryIndex));
+			for (final ArrayList<String> list : secondaryInterfaces)
+			{
+				LOGGER.log(Level.INFO, "New SQL node");
+				for (final String address : list)
+				{
+					LOGGER.log(Level.INFO, String.format("Interface %s", address));
+				}
+			}
+
+			if (ccr2.getRedirect())
+			{
+				LOGGER.log(Level.INFO, "Redirect command in ClientConnection2Response from server");
+				final String host = ccr2.getRedirectHost();
+				final int port = ccr2.getRedirectPort();
+				redirect(host, port, shouldRequestVersion);
+				// We have a lot of dangerous circular function calls.
+				// If we were redirected, then we already have the server version. We need to
+				// return here.
+				if (!getVersion().equals(""))
+				{
+					LOGGER.log(Level.WARNING, String.format("Returning in redirect because we were redirected with address: %s", serverVersion));
+					return;
+				}
+			}
+		}
+		catch(RuntimeException e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Runtime Exception %s occurred during handshake with message %s", e.toString(), e.getMessage()));
+			throw e;
+		}
+		catch (final Exception e)
+		{
+			LOGGER.log(Level.WARNING, String.format("Exception %s occurred during handshake with message %s", e.toString(), e.getMessage()));
+			e.printStackTrace();
+
+			try
+			{
+				sock.close();
+			}
+			catch (final Exception f)
+			{
+			}
+
+			throw e;
+		}
+
+		if (shouldRequestVersion)
+		{
+			if (serverVersion.equals(""))
+			{
+				fetchServerVersion();
+			}
+		}
+		LOGGER.log(Level.INFO, "Handshake GCM Finished");
+	}
+
+	// I don't like that this is copy and pasted of the above. But really, this function does too many things with
+	// the ccr and ccr2 to separate the GCM and CBC cases into if/switch statements.
+	private void clientHandshakeCBC(final String userid, final String pwd, final String db, final boolean shouldRequestVersion) throws Exception
+	{
+		try
+		{
+			LOGGER.log(Level.INFO, "Beginning CBC handshake");
 			// send first part of handshake - contains userid
 			final ClientWireProtocol.ClientConnection.Builder builder = ClientWireProtocol.ClientConnection.newBuilder();
 			builder.setUserid(userid);
@@ -655,7 +929,7 @@ public class XGConnection implements Connection
 				fetchServerVersion();
 			}
 		}
-		LOGGER.log(Level.INFO, "Handshake Finished");
+		LOGGER.log(Level.INFO, "Handshake CBC Finished");
 	}
 
 	@Override
