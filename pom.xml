@@ -141,7 +141,7 @@
         <version>3.9.1</version>
       </plugin>
       <!-- UNCOMMENT ONCE SPOTBUGS REPORTS 0 BUGS, WILL CHECK DURING VERIFY PHASE -->
-      <!-- <plugin>
+      <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
         <version>${spotbugs-maven-plugin.version}</version>
@@ -162,7 +162,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin> -->
+      </plugin>
       <plugin>
         <!-- Note this signing should appear before the gpg signing-->
         <groupId>org.apache.maven.plugins</groupId>
