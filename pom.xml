@@ -140,7 +140,6 @@
         <artifactId>maven-site-plugin</artifactId>
         <version>3.9.1</version>
       </plugin>
-      <!-- UNCOMMENT ONCE SPOTBUGS REPORTS 0 BUGS, WILL CHECK DURING VERIFY PHASE -->
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
