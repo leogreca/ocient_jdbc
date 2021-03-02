@@ -10,6 +10,7 @@ Below is the release notes for every driver version that has customer implicatio
 New Features::
 
  * Enable spotbugs analysis
+ * Increase tracing to millisecond granularity
 
 //tag::compact[]
 == 1.89 (2021-2-24)
