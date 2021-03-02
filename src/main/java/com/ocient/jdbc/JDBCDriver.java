@@ -343,7 +343,7 @@ public class JDBCDriver implements Driver
 	@Override
 	public DriverPropertyInfo[] getPropertyInfo(final String arg0, final Properties arg1) throws SQLException
 	{
-		final DriverPropertyInfo[] retval = new DriverPropertyInfo[14];
+		final DriverPropertyInfo[] retval = new DriverPropertyInfo[15];
 		final DriverPropertyInfo user = new DriverPropertyInfo("user", null);
 		user.description = "The userid to use for the connection";
 		user.required = true;

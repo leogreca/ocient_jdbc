@@ -131,6 +131,11 @@ public class XGConnection implements Connection
 		ON, // TLS but no server identity verification
 		VERIFY, // TLS with server identity verification
 	}
+	public enum HandshakeType
+	{
+		CBC, // Original handshake method
+		GCM, // New handshake method. Now default.
+	}
 
 	private class XGTrustManager extends X509ExtendedTrustManager
 	{
@@ -405,7 +410,8 @@ public class XGConnection implements Connection
 	private void clientHandshake(final String userid, final String pwd, final String db, final boolean shouldRequestVersion) throws Exception
 	{
 		final String handshakeStr = properties.getProperty("handshake", "GCM").toUpperCase();
-		if(handshakeStr.equals("CBC")){
+		final XGConnection.HandshakeType handshake = XGConnection.HandshakeType.valueOf(handshakeStr);
+		if(handshake == HandshakeType.CBC){
 			clientHandshakeCBC(userid, pwd, db, shouldRequestVersion);
 		} else {
 			// GCM
