@@ -130,6 +130,9 @@ public class XGArray implements java.sql.Array
 				return Types.TIME;
 			case 22:
 				return Types.STRUCT;
+			case 23:
+			case 24:
+				return Types.OTHER;
 			default:
 				throw SQLStates.INVALID_COLUMN_TYPE.clone();
 		}
