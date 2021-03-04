@@ -5,6 +5,13 @@ All our jdbc drivers are located {drivers_repo}[here].
 Below is the release notes for every driver version that has customer implication.
 
 //tag::compact[]
+== 1.91 (2021-3-4)
+
+New Features::
+
+ * Add support for st_linestring and st_polygon
+
+//tag::compact[]
 == 1.90 (2021-3-2)
 
 New Features::
