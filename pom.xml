@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ocient</groupId>
   <artifactId>ocient-jdbc4</artifactId>
-  <version>0.99</version>
+  <version>1.91</version>
   <!--JDBC VERSION NUMBER HERE -->
   <name>${project.groupId}:${project.artifactId}</name>
   <description>JDBC Driver for connecting to an Ocient Database</description>
@@ -140,8 +140,7 @@
         <artifactId>maven-site-plugin</artifactId>
         <version>3.9.1</version>
       </plugin>
-      <!-- UNCOMMENT ONCE SPOTBUGS REPORTS 0 BUGS, WILL CHECK DURING VERIFY PHASE -->
-      <!-- <plugin>
+      <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
         <version>${spotbugs-maven-plugin.version}</version>
@@ -157,12 +156,13 @@
         </configuration>
         <executions>
           <execution>
+            <phase>package</phase>
             <goals>
               <goal>check</goal>
             </goals>
           </execution>
         </executions>
-      </plugin> -->
+      </plugin>
       <plugin>
         <!-- Note this signing should appear before the gpg signing-->
         <groupId>org.apache.maven.plugins</groupId>

@@ -343,7 +343,7 @@ public class JDBCDriver implements Driver
 	@Override
 	public DriverPropertyInfo[] getPropertyInfo(final String arg0, final Properties arg1) throws SQLException
 	{
-		final DriverPropertyInfo[] retval = new DriverPropertyInfo[14];
+		final DriverPropertyInfo[] retval = new DriverPropertyInfo[15];
 		final DriverPropertyInfo user = new DriverPropertyInfo("user", null);
 		user.description = "The userid to use for the connection";
 		user.required = true;
@@ -423,6 +423,14 @@ public class JDBCDriver implements Driver
 		tls.choices[2] = "ON";
 		retval[13] = tls;
 
+		final DriverPropertyInfo handshake = new DriverPropertyInfo("handshake", null);
+		handshake.description = "Handshake Encryption Type";
+		handshake.required = false;
+		handshake.choices = new String[2];
+		tls.choices[0] = "GCM";
+		tls.choices[1] = "CBC";
+		retval[14] = handshake;
+		
 		return retval;
 	}
 

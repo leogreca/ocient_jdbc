@@ -5,7 +5,29 @@ All our jdbc drivers are located {drivers_repo}[here].
 Below is the release notes for every driver version that has customer implication.
 
 //tag::compact[]
-== 1.87 (2021-2-14)
+== 1.90 (2021-3-2)
+
+New Features::
+
+ * Enable spotbugs analysis
+ * Increase tracing to millisecond granularity
+
+//tag::compact[]
+== 1.89 (2021-2-24)
+
+New Features::
+
+ * Switch to using AES/GCM/NoPadding encryption
+
+//tag::compact[]
+== 1.88 (2021-2-24)
+
+New Features::
+
+ * Fix some broken custom xgMetadata calls.
+
+//tag::compact[]
+== 1.87 (2021-2-24)
 
 New Features::
 

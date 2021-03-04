@@ -9,7 +9,7 @@ public class ThreadFormatter extends Formatter
 {
 	// Jun 11, 2020 9:46:15 PM com.ocient.jdbc.JDBCDriver createConnection
 	// INFO: message
-	private static final MessageFormat messageFormat = new MessageFormat("{3,date,hh:mm:ss} [{2}] {0} {5} {1}: {4} \n");
+	private static final MessageFormat messageFormat = new MessageFormat("{3,date,hh:mm:ss.SSS} [{2}] {0} {5} {1}: {4} \n");
 
 	public ThreadFormatter()
 	{
