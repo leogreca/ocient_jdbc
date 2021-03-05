@@ -14,6 +14,7 @@ import java.io.Writer;
 import java.nio.charset.Charset; 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -39,6 +40,7 @@ import org.jline.terminal.TerminalBuilder;
 import com.ocient.jdbc.XGConnection;
 import com.ocient.jdbc.XGDatabaseMetaData;
 import com.ocient.jdbc.XGStatement;
+import com.ocient.jdbc.JDBCDriver;
 import com.ocient.jdbc.proto.ClientWireProtocol.SysQueriesRow;
 
 public class CLI
@@ -1342,7 +1344,10 @@ public class CLI
 						{
 							if (conn != null && !conn.isClosed())
 							{
+								Driver driver = DriverManager.getDriver(((XGConnection)conn).getURL());
+								JDBCDriver jdbcDriver = (JDBCDriver) driver;
 								conn.close();
+								jdbcDriver.cancelCacheThreads();
 							}
 						}
 						catch (final Exception e)
@@ -2043,7 +2048,10 @@ public class CLI
 						{
 							if (conn != null && !conn.isClosed())
 							{
+								Driver driver = DriverManager.getDriver(((XGConnection)conn).getURL());
+								JDBCDriver jdbcDriver = (JDBCDriver) driver;
 								conn.close();
+								jdbcDriver.cancelCacheThreads();
 							}
 						}
 						catch (final Exception e)

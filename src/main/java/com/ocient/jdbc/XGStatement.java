@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -95,6 +97,16 @@ public class XGStatement implements Statement
 				{
 					list.add(stmt);
 				}
+			}
+
+			try {
+				JDBCDriver driver = (JDBCDriver)DriverManager.getDriver(conn.getURL());
+							// Remove this timer task from the set of inflight cache timer tasks.
+				synchronized(driver.cacheTimerTasks){
+					driver.cacheTimerTasks.remove(timer);
+				}
+			} catch(final Exception e){
+				LOGGER.log(Level.WARNING, "Failed to fetch jdbc driver.");
 			}
 
 			timer.cancel(); // Terminate the timer thread
@@ -630,6 +642,15 @@ public class XGStatement implements Statement
 					LOGGER.log(Level.INFO,String.format("After correcting incorrect default schema. defaultSchema: %s", conn.defaultSchema));
 				}
 				timer.schedule(new ReturnToCacheTask(this), 30 * 1000);
+				// Emplace this timer into the set of inflight cache timer tasks.
+				try {
+					JDBCDriver driver = (JDBCDriver)DriverManager.getDriver(conn.getURL());
+					synchronized(driver.cacheTimerTasks){
+						driver.cacheTimerTasks.put(timer, timer);
+					}
+				} catch(final Exception e){
+					LOGGER.log(Level.WARNING, "Failed to fetch jdbc driver.");
+				}
 			}
 			else
 			{
