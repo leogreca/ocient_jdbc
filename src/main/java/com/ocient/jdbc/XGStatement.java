@@ -101,7 +101,7 @@ public class XGStatement implements Statement
 
 			try {
 				JDBCDriver driver = (JDBCDriver)DriverManager.getDriver(conn.getURL());
-							// Remove this timer task from the set of inflight cache timer tasks.
+				// Remove this timer task from the set of inflight cache timer tasks.
 				synchronized(driver.cacheTimerTasks){
 					driver.cacheTimerTasks.remove(timer);
 				}
@@ -642,9 +642,9 @@ public class XGStatement implements Statement
 					LOGGER.log(Level.INFO,String.format("After correcting incorrect default schema. defaultSchema: %s", conn.defaultSchema));
 				}
 				timer.schedule(new ReturnToCacheTask(this), 30 * 1000);
-				// Emplace this timer into the set of inflight cache timer tasks.
 				try {
 					JDBCDriver driver = (JDBCDriver)DriverManager.getDriver(conn.getURL());
+					// Emplace this timer into the set of inflight cache timer tasks.
 					synchronized(driver.cacheTimerTasks){
 						driver.cacheTimerTasks.put(timer, timer);
 					}
