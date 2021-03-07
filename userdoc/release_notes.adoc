@@ -10,6 +10,7 @@ Below is the release notes for every driver version that has customer implicatio
 New Features::
 
  * Add driver method to cancel all cache return threads.
+ * Add CLI functionality to limit max history size.
 
 //tag::compact[]
 == 1.91 (2021-3-4)

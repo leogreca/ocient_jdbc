@@ -1390,8 +1390,12 @@ public class CLI
 						}
 					}
 				}
-
-				quit = processCommand(cmd);
+				if(startsWithIgnoreCase(cmd, "CLI SET MAX HISTORY")){
+					final int maxLines = Integer.parseInt(cmd.substring("CLI SET MAX HISTORY ". length()).trim());
+					reader.setVariable(LineReader.HISTORY_SIZE, maxLines);
+				} else {
+					quit = processCommand(cmd);
+				}
 			}
 		}
 		catch (final UserInterruptException | EndOfFileException e)
