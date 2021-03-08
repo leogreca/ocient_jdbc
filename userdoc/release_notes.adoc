@@ -5,6 +5,14 @@ All our jdbc drivers are located {drivers_repo}[here].
 Below is the release notes for every driver version that has customer implication.
 
 //tag::compact[]
+== 1.92 (2021-3-5)
+
+New Features::
+
+ * Add driver method to cancel all cache return threads.
+ * Add CLI functionality to limit max history size.
+
+//tag::compact[]
 == 1.91 (2021-3-4)
 
 New Features::

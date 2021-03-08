@@ -8,6 +8,8 @@ import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Date;
+import java.sql.Driver;
+import java.sql.DriverManager;
 import java.sql.NClob;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
@@ -59,6 +61,15 @@ public class XGPreparedStatement extends XGStatement implements PreparedStatemen
 				{
 					list.add(stmt);
 				}
+			}
+			try {
+				JDBCDriver driver = (JDBCDriver)DriverManager.getDriver(conn.getURL());
+				// Remove this timer task from the set of inflight cache timer tasks.
+				synchronized(driver.cacheTimerTasks){
+					driver.cacheTimerTasks.remove(timer);
+				}
+			} catch(final Exception e){
+				LOGGER.log(Level.WARNING, "Failed to fetch jdbc driver.");
 			}
 
 			timer.cancel(); // Terminate the timer thread
@@ -291,7 +302,32 @@ public class XGPreparedStatement extends XGStatement implements PreparedStatemen
 			if (poolable)
 			{
 				timer = new Timer();
+				/*!
+				 * When the first connection is created, that connection will not have a server 
+				 * version and empty setSchema and default schema. It will copy that connection and 
+				 * fetch the server version. When that connection is returned to the pool, its reset method 
+				 * will set the server side connection to empty if we don't fix this here.
+				 */ 
+				if(conn.setSchema.equals("")){
+					LOGGER.log(Level.INFO, "This connection has an empty schema.");
+					conn.setSchema = conn.getSchema();
+					LOGGER.log(Level.INFO,String.format("After correcting incorrect schema. setSchema: %s." , conn.setSchema));
+				}
+				if(conn.defaultSchema.equals("")){
+					LOGGER.log(Level.INFO, "This connection has an empty default schema.");
+					conn.defaultSchema = conn.setSchema;
+					LOGGER.log(Level.INFO,String.format("After correcting incorrect default schema. defaultSchema: %s", conn.defaultSchema));
+				}
 				timer.schedule(new ReturnToCacheTask(this), 30 * 1000);
+				try {
+					JDBCDriver driver = (JDBCDriver)DriverManager.getDriver(conn.getURL());
+					// Emplace this timer into the set of inflight cache timer tasks.
+					synchronized(driver.cacheTimerTasks){
+						driver.cacheTimerTasks.put(timer, timer);
+					}
+				} catch(final Exception e){
+					LOGGER.log(Level.WARNING, "Failed to fetch jdbc driver.");
+				}
 			}
 			else
 			{
