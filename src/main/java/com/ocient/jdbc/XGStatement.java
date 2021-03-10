@@ -47,6 +47,7 @@ import com.ocient.jdbc.proto.ClientWireProtocol.ConfirmationResponse.ResponseTyp
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecuteExplain;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecuteExport;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExplainPipelineRequest;
+import com.ocient.jdbc.proto.ClientWireProtocol.CheckDataRequest;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecuteInlinePlan;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecutePlan;
 import com.ocient.jdbc.proto.ClientWireProtocol.ExecuteQuery;
@@ -747,7 +748,8 @@ public class XGStatement implements Statement
 				|| sql.toUpperCase().startsWith("LIST INDEXES ") || sql.toUpperCase().startsWith("GET SCHEMA") || sql.toUpperCase().startsWith("DESCRIBE VIEW ")
 				|| sql.toUpperCase().startsWith("DESCRIBE TABLE ") || sql.toUpperCase().startsWith("PLAN EXECUTE ") || sql.toUpperCase().startsWith("PLAN EXPLAIN ")
 				|| sql.toUpperCase().startsWith("LIST ALL QUERIES") || startsWithIgnoreCase(sql, "LIST ALL COMPLETED QUERIES") || sql.toUpperCase().startsWith("EXPORT TABLE ")
-				|| sql.toUpperCase().startsWith("EXPORT TRANSLATION ") || sql.toUpperCase().startsWith("EXPORT VIEW") || sql.toUpperCase().startsWith("LIST TABLE PRIVILEGES"))
+				|| sql.toUpperCase().startsWith("EXPORT TRANSLATION ") || sql.toUpperCase().startsWith("EXPORT VIEW") || sql.toUpperCase().startsWith("LIST TABLE PRIVILEGES")
+				|| sql.toUpperCase().startsWith("CHECK DATA"))
 			{
 				result = (XGResultSet) executeQuery(sql);
 				return true;
@@ -947,6 +949,10 @@ public class XGStatement implements Statement
 			else if (startsWithIgnoreCase(sql, "EXPORT VIEW"))
 			{
 				return exportViewSQL(sql);
+			}
+			else if (startsWithIgnoreCase(sql, "CHECK DATA "))
+			{
+				return checkDataSQL(sql);
 			}
 		}
 		catch (final Exception e)
@@ -1324,6 +1330,37 @@ public class XGStatement implements Statement
 		cols2Pos.put("pipeline", 0);
 		pos2Cols.put(0, "pipeline");
 		cols2Types.put("pipeline", "CHAR");
+		this.result.setCols2Pos(cols2Pos);
+		this.result.setPos2Cols(pos2Cols);
+		this.result.setCols2Types(cols2Types);
+
+		return this.result;
+	}
+
+	// used by CLI
+	public String checkData(final String table) throws SQLException
+	{
+		final ClientWireProtocol.CheckDataResponse.Builder er = (ClientWireProtocol.CheckDataResponse.Builder) sendAndReceive(table, Request.RequestType.CHECK_DATA, 0, false,
+			Optional.empty());
+		return er.getCheckDataStatement();
+	}
+
+	private ResultSet checkDataSQL(final String cmd) throws SQLException
+	{
+		LOGGER.log(Level.INFO, "Entered driver's checkData");
+		final String checkDataStr = checkData(cmd);
+		final ArrayList<Object> rs = new ArrayList<>();
+		final ArrayList<Object> row = new ArrayList<>();
+		row.add(checkDataStr);
+		rs.add(row);
+
+		this.result = this.conn.rs = new XGResultSet(this.conn, rs, this);
+		final Map<String, Integer> cols2Pos = new HashMap<String, Integer>();
+		final TreeMap<Integer, String> pos2Cols = new TreeMap<Integer, String>();
+		final Map<String, String> cols2Types = new HashMap<String, String>();
+		cols2Pos.put("check data", 0);
+		pos2Cols.put(0, "check data");
+		cols2Types.put("check data", "CHAR");
 		this.result.setCols2Pos(cols2Pos);
 		this.result.setPos2Cols(pos2Cols);
 		this.result.setCols2Types(cols2Types);
@@ -2289,6 +2326,14 @@ public class XGStatement implements Statement
 					b1 = ExplainPipelineRequest.newBuilder();
 					br = ClientWireProtocol.ExplainPipelineResponse.newBuilder();
 					setWrapped = b2.getClass().getMethod("setExplainPipeline", c);
+					forceFlag = false;
+					redirectFlag = false;
+					break;
+				case CHECK_DATA:
+					c = CheckDataRequest.class;
+					b1 = CheckDataRequest.newBuilder();
+					br = ClientWireProtocol.CheckDataResponse.newBuilder();
+					setWrapped = b2.getClass().getMethod("setCheckData", c);
 					forceFlag = false;
 					redirectFlag = false;
 					break;
