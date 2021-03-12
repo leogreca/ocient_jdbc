@@ -5,6 +5,13 @@ All our jdbc drivers are located {drivers_repo}[here].
 Below is the release notes for every driver version that has customer implication.
 
 //tag::compact[]
+== 1.93 (2021-3-11)
+
+New Features::
+
+ * Improve performance of writing query results to a file.
+
+//tag::compact[]
 == 1.92 (2021-3-5)
 
 New Features::
