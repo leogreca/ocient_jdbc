@@ -20,6 +20,7 @@ public class JDBCDriver implements Driver
 {
 
 	private static String version = "7.0.1";
+	private String clientVersion = getClass().getPackage().getImplementationVersion();
 	private static final Logger LOGGER = Logger.getLogger("com.ocient.jdbc");
 	private static String logFileName;
 	private static FileHandler logHandler;
@@ -106,7 +107,7 @@ public class JDBCDriver implements Driver
 				logHandler.setFormatter(new ThreadFormatter());
 				logFileName = logfile;
 				LOGGER.addHandler(logHandler);
-				LOGGER.log(Level.INFO, String.format("Enabling logger with jdbc jar version: %s", getClass().getPackage().getImplementationVersion()));
+				LOGGER.log(Level.INFO, String.format("Enabling logger with jdbc jar version: %s", clientVersion));
 			}
 			catch (final IOException | IllegalArgumentException e)
 			{
@@ -262,7 +263,7 @@ public class JDBCDriver implements Driver
 				{
 					final String url = "jdbc:ocient://" + hostname + ":" + Integer.toString(portNum) + "/" + database;
 					// If we've already seen this connection, don't do the connect
-					conn = new XGConnection(user, pwd, addr.getHostAddress(), portNum, url, database, version, force, tls, properties);
+					conn = new XGConnection(user, pwd, addr.getHostAddress(), portNum, url, database, version, clientVersion, force, tls, properties);
 					boolean doConnect = false;
 					synchronized (seenConnections)
 					{

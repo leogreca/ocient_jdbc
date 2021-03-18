@@ -284,7 +284,9 @@ public class XGConnection implements Connection
 	protected String user;
 	protected String database;
 	protected String client = "jdbc";
-	protected String driverVersion;
+	// protocolVersion does not change since switching to maven. clientVersion is the true driver version.
+	protected String protocolVersion;
+	protected String clientVersion;
 	protected String serverVersion = "";
 	protected String setSchema = "";
 	protected String defaultSchema = "";
@@ -315,7 +317,7 @@ public class XGConnection implements Connection
 
 	private final Properties properties;
 
-	public XGConnection(final String user, final String pwd, final int portNum, final String url, final String database, final String driverVersion, final boolean force, final Tls tls,
+	public XGConnection(final String user, final String pwd, final int portNum, final String url, final String database, final String protocolVersion, String clientVersion, final boolean force, final Tls tls,
 		final Properties properties)
 	{
 		this.force = force;
@@ -325,7 +327,8 @@ public class XGConnection implements Connection
 		sock = null;
 		this.portNum = portNum;
 		this.database = database;
-		this.driverVersion = driverVersion;
+		this.protocolVersion = protocolVersion;
+		this.clientVersion = clientVersion;
 		retryCounter = 0;
 		this.tls = tls;
 		typeMap = new HashMap<>();
@@ -334,7 +337,7 @@ public class XGConnection implements Connection
 		this.properties = properties;
 	}
 
-	public XGConnection(final String user, final String pwd, final String ip, final int portNum, final String url, final String database, final String driverVersion, final String force, final Tls tls,
+	public XGConnection(final String user, final String pwd, final String ip, final int portNum, final String url, final String database, final String protocolVersion, String clientVersion, final String force, final Tls tls,
 		final Properties properties) throws Exception
 	{
 		originalIp = ip;
@@ -353,7 +356,8 @@ public class XGConnection implements Connection
 		this.ip = ip;
 		this.portNum = portNum;
 		this.database = database;
-		this.driverVersion = driverVersion;
+		this.protocolVersion = protocolVersion;
+		this.clientVersion = clientVersion;
 		retryCounter = 0;
 		this.tls = tls;
 		typeMap = new HashMap<>();
@@ -429,7 +433,12 @@ public class XGConnection implements Connection
 			builder.setUserid(userid);
 			builder.setDatabase(database);
 			builder.setClientid(client);
-			builder.setVersion(driverVersion);
+			builder.setVersion(protocolVersion);
+			String[] majorMinorVersion = clientVersion.split("\\.");
+			int majorClientVersion = Integer.parseInt(majorMinorVersion[0]);
+			int minorClientVersion = Integer.parseInt(majorMinorVersion[1]);
+			builder.setMajorClientVersion(majorClientVersion);
+			builder.setMinorClientVersion(minorClientVersion);
 			final ClientConnectionGCM msg = builder.build();
 			ClientWireProtocol.Request.Builder b2 = ClientWireProtocol.Request.newBuilder();
 			b2.setType(ClientWireProtocol.Request.RequestType.CLIENT_CONNECTION_GCM);
@@ -690,7 +699,12 @@ public class XGConnection implements Connection
 			builder.setUserid(userid);
 			builder.setDatabase(database);
 			builder.setClientid(client);
-			builder.setVersion(driverVersion);
+			builder.setVersion(protocolVersion);
+			String[] majorMinorVersion = clientVersion.split("\\.");
+			int majorClientVersion = Integer.parseInt(majorMinorVersion[0]);
+			int minorClientVersion = Integer.parseInt(majorMinorVersion[1]);
+			builder.setMajorClientVersion(majorClientVersion);
+			builder.setMinorClientVersion(minorClientVersion);
 			final ClientConnection msg = builder.build();
 			ClientWireProtocol.Request.Builder b2 = ClientWireProtocol.Request.newBuilder();
 			b2.setType(ClientWireProtocol.Request.RequestType.CLIENT_CONNECTION);
@@ -1136,7 +1150,7 @@ public class XGConnection implements Connection
 			doForce = true;
 		}
 
-		final XGConnection retval = new XGConnection(user, pwd, portNum, url, database, driverVersion, doForce, tls, properties);
+		final XGConnection retval = new XGConnection(user, pwd, portNum, url, database, protocolVersion, clientVersion, doForce, tls, properties);
 		try
 		{
 			retval.connected = false;
@@ -1438,7 +1452,7 @@ public class XGConnection implements Connection
 
 	public int getMajorVersion()
 	{
-		return Integer.parseInt(driverVersion.substring(0, driverVersion.indexOf(".")));
+		return Integer.parseInt(protocolVersion.substring(0, protocolVersion.indexOf(".")));
 	}
 
 	@Override
@@ -1456,8 +1470,8 @@ public class XGConnection implements Connection
 
 	public int getMinorVersion()
 	{
-		final int i = driverVersion.indexOf(".") + 1;
-		return Integer.parseInt(driverVersion.substring(i, driverVersion.indexOf(".", i)));
+		final int i = protocolVersion.indexOf(".") + 1;
+		return Integer.parseInt(protocolVersion.substring(i, protocolVersion.indexOf(".", i)));
 	}
 
 	@Override
@@ -1633,7 +1647,7 @@ public class XGConnection implements Connection
 
 	public String getVersion()
 	{
-		return driverVersion;
+		return protocolVersion;
 	}
 
 	@Override
@@ -1899,6 +1913,7 @@ public class XGConnection implements Connection
 			final String reason = response.getReason();
 			final String sqlState = response.getSqlState();
 			final int code = response.getVendorCode();
+			LOGGER.log(Level.WARNING, String.format("Server issued a warning response [%s] %s", sqlState, reason));
 			warnings.add(new SQLWarning(reason, sqlState, code));
 		}
 	}
@@ -2731,6 +2746,7 @@ public class XGConnection implements Connection
 
 	public int setConcurrency(final Integer concurrency, final boolean reset)
 	{
+		LOGGER.log(Level.INFO, String.format("Setting concurrency to: %d", concurrency));
 		this.concurrency = concurrency;
 		final ClientWireProtocol.SetParameter.Builder builder = ClientWireProtocol.SetParameter.newBuilder();
 		builder.setReset(reset);
@@ -2754,6 +2770,7 @@ public class XGConnection implements Connection
 
 	public int setMaxRows(final Integer maxRows, final boolean reset)
 	{
+		LOGGER.log(Level.INFO, String.format("Setting maxrow to: %d", maxRows));
 		this.maxRows = maxRows;
 		final ClientWireProtocol.SetParameter.Builder builder = ClientWireProtocol.SetParameter.newBuilder();
 		builder.setReset(reset);
@@ -2766,6 +2783,7 @@ public class XGConnection implements Connection
 
 	public int setMaxTempDisk(final Integer maxTempDisk, final boolean reset)
 	{
+		LOGGER.log(Level.INFO, String.format("Setting maxTempDisk to: %d", maxTempDisk));
 		this.maxTempDisk = maxTempDisk;
 		final ClientWireProtocol.SetParameter.Builder builder = ClientWireProtocol.SetParameter.newBuilder();
 		builder.setReset(reset);
@@ -2778,6 +2796,7 @@ public class XGConnection implements Connection
 
 	public int setMaxTime(final Integer maxTime, final boolean reset)
 	{
+		LOGGER.log(Level.INFO, String.format("Setting maxTime to: %d", maxTime));
 		this.maxTime = maxTime;
 		final ClientWireProtocol.SetParameter.Builder builder = ClientWireProtocol.SetParameter.newBuilder();
 		builder.setReset(reset);
@@ -2803,6 +2822,7 @@ public class XGConnection implements Connection
 
 	public int setPriority(final Double priority, final boolean reset)
 	{
+		LOGGER.log(Level.INFO, String.format("Setting priority to: %f", priority));
 		this.priority = priority;
 		final ClientWireProtocol.SetParameter.Builder builder = ClientWireProtocol.SetParameter.newBuilder();
 		builder.setReset(reset);

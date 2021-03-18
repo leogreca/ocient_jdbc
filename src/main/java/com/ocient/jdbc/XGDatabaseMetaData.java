@@ -539,6 +539,7 @@ public class XGDatabaseMetaData implements DatabaseMetaData
 	@Override
 	public String getDriverVersion() throws SQLException
 	{
+		// This is really the protocol version.
 		LOGGER.log(Level.INFO, "Called getDriverVersion()");
 		return ((XGConnection) conn).getVersion();
 	}
