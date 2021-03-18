@@ -284,9 +284,8 @@ public class XGConnection implements Connection
 	protected String user;
 	protected String database;
 	protected String client = "jdbc";
-	// driverVersion is not used since switching to maven. clientVersion is the true driver version.
-	protected String driverVersion;
-	// We store the clientVersion as an int to avoid comparison of floats.
+	// protocolVersion does not change since switching to maven. clientVersion is the true driver version.
+	protected String protocolVersion;
 	protected String clientVersion;
 	protected String serverVersion = "";
 	protected String setSchema = "";
@@ -318,7 +317,7 @@ public class XGConnection implements Connection
 
 	private final Properties properties;
 
-	public XGConnection(final String user, final String pwd, final int portNum, final String url, final String database, final String driverVersion, String clientVersion, final boolean force, final Tls tls,
+	public XGConnection(final String user, final String pwd, final int portNum, final String url, final String database, final String protocolVersion, String clientVersion, final boolean force, final Tls tls,
 		final Properties properties)
 	{
 		this.force = force;
@@ -328,7 +327,7 @@ public class XGConnection implements Connection
 		sock = null;
 		this.portNum = portNum;
 		this.database = database;
-		this.driverVersion = driverVersion;
+		this.protocolVersion = protocolVersion;
 		this.clientVersion = clientVersion;
 		retryCounter = 0;
 		this.tls = tls;
@@ -338,7 +337,7 @@ public class XGConnection implements Connection
 		this.properties = properties;
 	}
 
-	public XGConnection(final String user, final String pwd, final String ip, final int portNum, final String url, final String database, final String driverVersion, String clientVersion, final String force, final Tls tls,
+	public XGConnection(final String user, final String pwd, final String ip, final int portNum, final String url, final String database, final String protocolVersion, String clientVersion, final String force, final Tls tls,
 		final Properties properties) throws Exception
 	{
 		originalIp = ip;
@@ -357,7 +356,7 @@ public class XGConnection implements Connection
 		this.ip = ip;
 		this.portNum = portNum;
 		this.database = database;
-		this.driverVersion = driverVersion;
+		this.protocolVersion = protocolVersion;
 		this.clientVersion = clientVersion;
 		retryCounter = 0;
 		this.tls = tls;
@@ -434,7 +433,7 @@ public class XGConnection implements Connection
 			builder.setUserid(userid);
 			builder.setDatabase(database);
 			builder.setClientid(client);
-			builder.setVersion(driverVersion);
+			builder.setVersion(protocolVersion);
 			String[] majorMinorVersion = clientVersion.split("\\.");
 			int majorClientVersion = Integer.parseInt(majorMinorVersion[0]);
 			int minorClientVersion = Integer.parseInt(majorMinorVersion[1]);
@@ -700,7 +699,7 @@ public class XGConnection implements Connection
 			builder.setUserid(userid);
 			builder.setDatabase(database);
 			builder.setClientid(client);
-			builder.setVersion(driverVersion);
+			builder.setVersion(protocolVersion);
 			String[] majorMinorVersion = clientVersion.split("\\.");
 			int majorClientVersion = Integer.parseInt(majorMinorVersion[0]);
 			int minorClientVersion = Integer.parseInt(majorMinorVersion[1]);
@@ -1151,7 +1150,7 @@ public class XGConnection implements Connection
 			doForce = true;
 		}
 
-		final XGConnection retval = new XGConnection(user, pwd, portNum, url, database, driverVersion, clientVersion, doForce, tls, properties);
+		final XGConnection retval = new XGConnection(user, pwd, portNum, url, database, protocolVersion, clientVersion, doForce, tls, properties);
 		try
 		{
 			retval.connected = false;
@@ -1453,7 +1452,7 @@ public class XGConnection implements Connection
 
 	public int getMajorVersion()
 	{
-		return Integer.parseInt(driverVersion.substring(0, driverVersion.indexOf(".")));
+		return Integer.parseInt(protocolVersion.substring(0, protocolVersion.indexOf(".")));
 	}
 
 	@Override
@@ -1471,8 +1470,8 @@ public class XGConnection implements Connection
 
 	public int getMinorVersion()
 	{
-		final int i = driverVersion.indexOf(".") + 1;
-		return Integer.parseInt(driverVersion.substring(i, driverVersion.indexOf(".", i)));
+		final int i = protocolVersion.indexOf(".") + 1;
+		return Integer.parseInt(protocolVersion.substring(i, protocolVersion.indexOf(".", i)));
 	}
 
 	@Override
@@ -1648,7 +1647,7 @@ public class XGConnection implements Connection
 
 	public String getVersion()
 	{
-		return driverVersion;
+		return protocolVersion;
 	}
 
 	@Override
