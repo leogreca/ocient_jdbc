@@ -1,17 +1,14 @@
 package com.ocient.cli;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.Console;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.charset.Charset; 
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
@@ -37,10 +34,10 @@ import org.jline.reader.impl.DefaultParser;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
+import com.ocient.jdbc.JDBCDriver;
 import com.ocient.jdbc.XGConnection;
 import com.ocient.jdbc.XGDatabaseMetaData;
 import com.ocient.jdbc.XGStatement;
-import com.ocient.jdbc.JDBCDriver;
 import com.ocient.jdbc.proto.ClientWireProtocol.SysQueriesRow;
 
 public class CLI
@@ -267,7 +264,7 @@ public class CLI
 		{
 			try
 			{
-				if(rs != null)
+				if (rs != null)
 				{
 					rs.close();
 				}
@@ -342,7 +339,7 @@ public class CLI
 		{
 			try
 			{
-				if(rs != null)
+				if (rs != null)
 				{
 					rs.close();
 				}
@@ -412,7 +409,7 @@ public class CLI
 		{
 			try
 			{
-				if(rs != null)
+				if (rs != null)
 				{
 					rs.close();
 				}
@@ -462,7 +459,53 @@ public class CLI
 		{
 			try
 			{
-				if(rs != null)
+				if (rs != null)
+				{
+					rs.close();
+				}
+			}
+			catch (final Exception f)
+			{
+			}
+			System.out.println("Error: " + e.getMessage());
+		}
+	}
+
+	private static void explainPipeline(final String cmd)
+	{
+		long start = 0;
+		long end = 0;
+		if (!isConnected())
+		{
+			System.out.println("No database connection exists");
+			return;
+		}
+		ResultSet rs = null;
+		try
+		{
+			start = System.currentTimeMillis();
+			stmt.execute(cmd);
+			rs = stmt.getResultSet();
+			final ResultSetMetaData meta = rs.getMetaData();
+			if (outputCSVFile.isEmpty())
+			{
+				printResultSet(rs, meta);
+			}
+			else
+			{
+				outputResultSet(rs, meta);
+				outputCSVFile = "";
+			}
+			printWarnings(stmt);
+			end = System.currentTimeMillis();
+			rs.close();
+			printTime(start, end);
+		}
+		catch (final Exception e)
+		{
+			try
+			{
+				if (rs != null)
 				{
 					rs.close();
 				}
@@ -514,51 +557,6 @@ public class CLI
 		}
 	}
 
-	private static void exportView(final String cmd)
-	{
-		long start = 0;
-		long end = 0;
-		if (!isConnected())
-		{
-			System.out.println("No database connection exists");
-			return;
-		}
-		ResultSet rs = null;
-		try
-		{
-			start = System.currentTimeMillis();
-			stmt.execute(cmd);
-			rs = stmt.getResultSet();
-			final ResultSetMetaData meta = rs.getMetaData();
-			if (outputCSVFile.isEmpty())
-			{
-				printResultSet(rs, meta);
-			} else
-			{
-				outputResultSet(rs, meta);
-				outputCSVFile = "";
-			}
-			printWarnings(stmt);
-			end = System.currentTimeMillis();
-			rs.close();
-			printTime(start, end);
-		}
-		catch (final Exception e)
-		{
-			try
-			{
-				if (rs != null)
-				{
-					rs.close();
-				}
-			}
-			catch (final Exception f)
-			{
-			}
-			System.out.println("Error: " + e.getMessage());
-		}
-	}
-
 	private static void exportTable(final String cmd)
 	{
 		long start = 0;
@@ -593,7 +591,7 @@ public class CLI
 		{
 			try
 			{
-				if(rs != null)
+				if (rs != null)
 				{
 					rs.close();
 				}
@@ -642,22 +640,28 @@ public class CLI
 		}
 	}
 
-	private static void explainPipeline(final String cmd) {
+	private static void exportView(final String cmd)
+	{
 		long start = 0;
 		long end = 0;
-		if (!isConnected()) {
+		if (!isConnected())
+		{
 			System.out.println("No database connection exists");
 			return;
 		}
 		ResultSet rs = null;
-		try {
+		try
+		{
 			start = System.currentTimeMillis();
 			stmt.execute(cmd);
 			rs = stmt.getResultSet();
 			final ResultSetMetaData meta = rs.getMetaData();
-			if (outputCSVFile.isEmpty()) {
+			if (outputCSVFile.isEmpty())
+			{
 				printResultSet(rs, meta);
-			} else {
+			}
+			else
+			{
 				outputResultSet(rs, meta);
 				outputCSVFile = "";
 			}
@@ -665,13 +669,18 @@ public class CLI
 			end = System.currentTimeMillis();
 			rs.close();
 			printTime(start, end);
-		} catch (final Exception e) {
-			try {
-				if(rs != null)
+		}
+		catch (final Exception e)
+		{
+			try
+			{
+				if (rs != null)
 				{
 					rs.close();
 				}
-			} catch (final Exception f) {
+			}
+			catch (final Exception f)
+			{
 			}
 			System.out.println("Error: " + e.getMessage());
 		}
@@ -766,7 +775,7 @@ public class CLI
 			e.printStackTrace();
 			try
 			{
-				if(rs != null)
+				if (rs != null)
 				{
 					rs.close();
 				}
@@ -864,7 +873,7 @@ public class CLI
 		{
 			try
 			{
-				if(rs != null)
+				if (rs != null)
 				{
 					rs.close();
 				}
@@ -912,7 +921,7 @@ public class CLI
 		{
 			try
 			{
-				if(rs != null)
+				if (rs != null)
 				{
 					rs.close();
 				}
@@ -1018,7 +1027,7 @@ public class CLI
 		{
 			try
 			{
-				if(rs != null)
+				if (rs != null)
 				{
 					rs.close();
 				}
@@ -1106,7 +1115,7 @@ public class CLI
 		{
 			try
 			{
-				if(rs != null)
+				if (rs != null)
 				{
 					rs.close();
 				}
@@ -1187,7 +1196,7 @@ public class CLI
 		{
 			try
 			{
-				if(rs != null)
+				if (rs != null)
 				{
 					rs.close();
 				}
@@ -1270,7 +1279,7 @@ public class CLI
 		{
 			try
 			{
-				if(rs != null)
+				if (rs != null)
 				{
 					rs.close();
 				}
@@ -1379,8 +1388,8 @@ public class CLI
 						{
 							if (conn != null && !conn.isClosed())
 							{
-								Driver driver = DriverManager.getDriver(((XGConnection)conn).getURL());
-								JDBCDriver jdbcDriver = (JDBCDriver) driver;
+								final Driver driver = DriverManager.getDriver(((XGConnection) conn).getURL());
+								final JDBCDriver jdbcDriver = (JDBCDriver) driver;
 								conn.close();
 								jdbcDriver.cancelCacheThreads();
 							}
@@ -1425,10 +1434,13 @@ public class CLI
 						}
 					}
 				}
-				if(startsWithIgnoreCase(cmd, "CLI SET MAX HISTORY")){
-					final int maxLines = Integer.parseInt(cmd.substring("CLI SET MAX HISTORY ". length()).trim());
+				if (startsWithIgnoreCase(cmd, "CLI SET MAX HISTORY"))
+				{
+					final int maxLines = Integer.parseInt(cmd.substring("CLI SET MAX HISTORY ".length()).trim());
 					reader.setVariable(LineReader.HISTORY_SIZE, maxLines);
-				} else {
+				}
+				else
+				{
 					quit = processCommand(cmd);
 				}
 			}
@@ -1457,7 +1469,8 @@ public class CLI
 
 	private static void outputResultSet(final ResultSet rs, final ResultSetMetaData meta) throws Exception
 	{
-		Writer out = new OutputStreamWriter(new FileOutputStream(outputCSVFile), Charset.defaultCharset());
+		final FileWriter fw = new FileWriter(outputCSVFile);
+		final BufferedWriter out = new BufferedWriter(fw);
 		try
 		{
 			for (int i = 1; i <= meta.getColumnCount(); i++)
@@ -1526,10 +1539,10 @@ public class CLI
 				out.write('\n');
 				rowCount++;
 			}
-				out.close();
-				System.out.println("Fetched " + rowCount + (rowCount == 1 ? " row" : " rows"));
+			out.close();
+			System.out.println("Fetched " + rowCount + (rowCount == 1 ? " row" : " rows"));
 		}
-		catch(final Exception e)
+		catch (final Exception e)
 		{
 			out.close();
 			System.out.println("Error: " + e.getMessage());
@@ -1724,7 +1737,7 @@ public class CLI
 		{
 			getSchema(cmd);
 		}
-		 // recognize explain pipeline not as explain
+		// recognize explain pipeline not as explain
 		else if (startsWithIgnoreCase(cmd, "EXPLAIN PIPELINE"))
 		{
 			explainPipeline(cmd);
@@ -1734,13 +1747,9 @@ public class CLI
 			explain(cmd);
 		}
 		else if (startsWithIgnoreCase(cmd, "CREATE") || startsWithIgnoreCase(cmd, "DROP") || startsWithIgnoreCase(cmd, "ALTER") || startsWithIgnoreCase(cmd, "TRUNCATE")
-			|| startsWithIgnoreCase(cmd, "SET PSO") 
-			|| startsWithIgnoreCase(cmd, "SET MAXROWS") 
-			|| startsWithIgnoreCase(cmd, "SET MAXTIME") 
-			|| startsWithIgnoreCase(cmd, "SET MAXTEMPDISK") 
-			|| startsWithIgnoreCase(cmd, "SET CONCURRENCY") 
-			|| startsWithIgnoreCase(cmd, "SET PRIORITY") 
-			|| startsWithIgnoreCase(cmd, "GRANT") || startsWithIgnoreCase(cmd, "REVOKE") || startsWithIgnoreCase(cmd, "INVALIDATE STATS"))
+			|| startsWithIgnoreCase(cmd, "SET PSO") || startsWithIgnoreCase(cmd, "SET MAXROWS") || startsWithIgnoreCase(cmd, "SET MAXTIME") || startsWithIgnoreCase(cmd, "SET MAXTEMPDISK")
+			|| startsWithIgnoreCase(cmd, "SET CONCURRENCY") || startsWithIgnoreCase(cmd, "SET PRIORITY") || startsWithIgnoreCase(cmd, "GRANT") || startsWithIgnoreCase(cmd, "REVOKE")
+			|| startsWithIgnoreCase(cmd, "INVALIDATE STATS"))
 		{
 			update(cmd);
 		}
@@ -1919,7 +1928,7 @@ public class CLI
 		{
 			try
 			{
-				if(rs != null)
+				if (rs != null)
 				{
 					rs.close();
 				}
@@ -1933,7 +1942,7 @@ public class CLI
 
 	private static void setMaxRows(final String cmd)
 	{
-		long start = 0;
+		final long start = 0;
 		final long end = 0;
 		if (!isConnected())
 		{
@@ -2091,8 +2100,8 @@ public class CLI
 						{
 							if (conn != null && !conn.isClosed())
 							{
-								Driver driver = DriverManager.getDriver(((XGConnection)conn).getURL());
-								JDBCDriver jdbcDriver = (JDBCDriver) driver;
+								final Driver driver = DriverManager.getDriver(((XGConnection) conn).getURL());
+								final JDBCDriver jdbcDriver = (JDBCDriver) driver;
 								conn.close();
 								jdbcDriver.cancelCacheThreads();
 							}

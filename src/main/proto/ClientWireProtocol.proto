@@ -11,6 +11,8 @@ message ClientConnection
     string database = 2;
     string clientid = 3;
 	string version = 4;
+	int32 majorClientVersion = 5;
+	int32 minorClientVersion = 6;
 }
 
 message ClientConnectionGCM
@@ -19,6 +21,8 @@ message ClientConnectionGCM
 	string database = 2;
 	string clientid = 3;
 	string version = 4;
+	int32 majorClientVersion = 5;
+	int32 minorClientVersion = 6;
 }
 
 message ClientConnectionResponse 
