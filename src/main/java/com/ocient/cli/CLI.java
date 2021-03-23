@@ -686,6 +686,41 @@ public class CLI
 		}
 	}
 
+	private static void checkData(final String cmd) {
+		long start = 0;
+		long end = 0;
+		if (!isConnected()) {
+			System.out.println("No database connection exists");
+			return;
+		}
+		ResultSet rs = null;
+		try {
+			start = System.currentTimeMillis();
+			stmt.execute(cmd);
+			rs = stmt.getResultSet();
+			final ResultSetMetaData meta = rs.getMetaData();
+			if (outputCSVFile.isEmpty()) {
+				printResultSet(rs, meta);
+			} else {
+				outputResultSet(rs, meta);
+				outputCSVFile = "";
+			}
+			printWarnings(stmt);
+			end = System.currentTimeMillis();
+			rs.close();
+			printTime(start, end);
+		} catch (final Exception e) {
+			try {
+				if(rs != null)
+				{
+					rs.close();
+				}
+			} catch (final Exception f) {
+			}
+			System.out.println("Error: " + e.getMessage());
+		}
+	}
+
 	private static void forceExternal(final String cmd)
 	{
 		if (!isConnected())
@@ -1801,6 +1836,10 @@ public class CLI
 		else if (startsWithIgnoreCase(cmd, "SET TIMEOUT"))
 		{
 			setQueryTimeout(cmd);
+		}
+		else if (startsWithIgnoreCase(cmd, "CHECK DATA"))
+		{
+			checkData(cmd);
 		}
 		else
 		{

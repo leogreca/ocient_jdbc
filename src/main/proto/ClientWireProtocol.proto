@@ -397,6 +397,7 @@ message Request
 		EXPLAIN_PIPELINE = 35;
 		CLIENT_CONNECTION_GCM = 36;
 		CLIENT_CONNECTION_GCM2 = 37;
+		CHECK_DATA = 38;
     }
 
     RequestType type = 1;
@@ -440,6 +441,7 @@ message Request
 		ExplainPipelineRequest explain_pipeline = 36;
 		ClientConnectionGCM client_connection_gcm = 37;
 		ClientConnectionGCM2 client_connection_gcm2 = 38;
+		CheckDataRequest check_data = 39;
     }
 }
 
@@ -573,6 +575,17 @@ message ExplainPipelineResponse
 {
 	ConfirmationResponse response = 1;
 	string pipelineStatement = 2;
+}
+
+message CheckDataRequest
+{
+	string sql = 1;
+}
+
+message CheckDataResponse
+{
+	ConfirmationResponse response = 1;
+	string checkDataStatement = 2;
 }
 
 message SetPSO
