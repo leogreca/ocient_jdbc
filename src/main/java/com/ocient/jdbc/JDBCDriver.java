@@ -283,8 +283,17 @@ public class JDBCDriver implements Driver
 					{
 						LOGGER.log(Level.INFO, "About to attempt connection");
 						conn.connect();
-						conn.setSchema = conn.getSchema();
-						conn.defaultSchema = conn.setSchema;
+						if (properties.containsKey("defaultSchema") && properties.get("defaultSchema") != null)
+						{
+							String userDefaultSchema = properties.getProperty("defaultSchema");
+							conn.setSchema(userDefaultSchema);
+							conn.defaultSchema = userDefaultSchema;
+						}
+						else
+						{
+							conn.setSchema = conn.getSchema();
+							conn.defaultSchema = conn.setSchema;
+						}
 						LOGGER.log(Level.INFO, "Successfully connected");
 						connected = true;
 						synchronized (seenConnections)
@@ -315,7 +324,7 @@ public class JDBCDriver implements Driver
 			connInfo.initCause(e);
 			throw g;
 		}
-
+		
 		return conn;
 	}
 

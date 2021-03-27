@@ -10,6 +10,7 @@ Below is the release notes for every driver version that has customer implicatio
 New Features::
 
  * Add support for CHECK DATA to CLI
+ * Fix bug where defaultSchema was not working.
 
 //tag::compact[]
 == 1.94 (2021-3-18)
