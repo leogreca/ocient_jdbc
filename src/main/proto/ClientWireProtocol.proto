@@ -111,6 +111,8 @@ message AttachToQuery
 message FetchData
 {
 	sfixed32 fetch_size = 1;
+	sfixed32 break_num = 2;
+	bool break_result = 3;
 }
 
 message ResultSet
@@ -453,6 +455,7 @@ message ConfirmationResponse
 		RESPONSE_OK = 1;
 		RESPONSE_WARN = 2;
 		RESPONSE_ERROR = 3;
+		RESPONSE_SPECIAL = 4;
 	}
 	
 	ResponseType type = 1;

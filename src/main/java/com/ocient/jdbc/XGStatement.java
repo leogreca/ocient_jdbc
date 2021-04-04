@@ -412,7 +412,7 @@ public class XGStatement implements Statement
 
 	protected boolean closed = false;
 
-	protected final XGConnection conn;
+	protected XGConnection conn;
 	protected XGResultSet result;
 
 	private int updateCount = -1;
@@ -980,8 +980,8 @@ public class XGStatement implements Statement
 				numClientThreads = Runtime.getRuntime().availableProcessors();
 			}
 
-			LOGGER.log(Level.INFO, "Creating result set for query with " + numClientThreads + " result set threads");
-			result = conn.rs = new XGResultSet(conn, fetchSize, this, numClientThreads);
+			LOGGER.log(Level.INFO, "Creating result set for query with " + 4 + " result set threads");
+			result = conn.rs = new XGResultSet(conn, fetchSize, this, 4);
 		}
 		catch (final Exception e)
 		{
