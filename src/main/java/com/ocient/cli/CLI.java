@@ -1714,12 +1714,10 @@ public class CLI
 		else if (cmd.equalsIgnoreCase("PERFORMANCE ON"))
 		{
 			performance = true;
-			timing = true;
 		}
 		else if (cmd.equalsIgnoreCase("PERFORMANCE OFF"))
 		{
 			performance = false;
-			timing = false;
 		}
 		else if (cmd.equalsIgnoreCase("TRACE ON"))
 		{
