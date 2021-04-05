@@ -10,6 +10,7 @@ Below is the release notes for every driver version that has customer implicatio
 New Features::
 
  * Add support for POINT EMPTY
+ * Fix CLI performance on/off affecting timing setting.
 
 //tag::compact[]
 == 1.95 (2021-3-22)
