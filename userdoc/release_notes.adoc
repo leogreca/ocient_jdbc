@@ -5,6 +5,13 @@ All our jdbc drivers are located {drivers_repo}[here].
 Below is the release notes for every driver version that has customer implication.
 
 //tag::compact[]
+== 1.98 (2021-4-05)
+
+New Features::
+
+ * Add support for QUARANTINE
+
+//tag::compact[]
 == 1.97 (2021-4-02)
 
 New Features::
