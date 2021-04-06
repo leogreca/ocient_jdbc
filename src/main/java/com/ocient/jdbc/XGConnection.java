@@ -2770,6 +2770,21 @@ public class XGConnection implements Connection
 
 	public int setMaxRows(final Integer maxRows, final boolean reset)
 	{
+		// Set a "soft" limit on the number of rows returned. "Soft" in this case
+		// implies the query should silently omit excess rows
+		LOGGER.log(Level.INFO, String.format("Setting maxrow to: %d", maxRows));
+		if (reset) {
+			this.maxRows = null;
+		} else {
+			this.maxRows = maxRows;
+		}
+		return 0;
+	}
+
+	public int setMaxRowsHardLimit(final Integer maxRows, final boolean reset)
+	{
+		// Set a "hard" limit on the number of rows returned. "Hard" in this case
+		// implies the server will abort queries which emit excess rows
 		LOGGER.log(Level.INFO, String.format("Setting maxrow to: %d", maxRows));
 		this.maxRows = maxRows;
 		final ClientWireProtocol.SetParameter.Builder builder = ClientWireProtocol.SetParameter.newBuilder();
@@ -2777,7 +2792,6 @@ public class XGConnection implements Connection
 		final ClientWireProtocol.SetParameter.RowLimit.Builder innerBuilder = ClientWireProtocol.SetParameter.RowLimit.newBuilder();
 		innerBuilder.setRowLimit(maxRows != null ? maxRows : 0);
 		builder.setRowLimit(innerBuilder.build());
-
 		return sendParameterMessage(builder.build());
 	}
 

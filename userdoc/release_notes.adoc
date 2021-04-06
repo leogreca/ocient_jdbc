@@ -5,6 +5,21 @@ All our jdbc drivers are located {drivers_repo}[here].
 Below is the release notes for every driver version that has customer implication.
 
 //tag::compact[]
+== 1.97 (2021-4-02)
+
+New Features::
+
+ * Queries that exceed the row limit set by XGConnection::setMaxRows now silently omit excess rows. The previous behavior would result in query failure.
+
+//tag::compact[]
+== 1.96 (2021-4-01)
+
+New Features::
+
+ * Add support for POINT EMPTY
+ * Fix CLI performance on/off affecting timing setting.
+
+//tag::compact[]
 == 1.95 (2021-3-22)
 
 New Features::

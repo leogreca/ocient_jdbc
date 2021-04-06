@@ -960,6 +960,12 @@ public class XGStatement implements Statement
 			throw SQLStates.newGenericException(e);
 		}
 
+		// Apply the soft limit for max rows returned, if one exists.
+        if (conn.maxRows != null && conn.maxRows != 0) {
+            sql = "WITH THE_USER_QUERY_TO_ADD_A_LIMIT_TO as (" + sql
+                    + ") SELECT * FROM THE_USER_QUERY_TO_ADD_A_LIMIT_TO LIMIT " + conn.maxRows;
+        }
+
 		LOGGER.log(Level.INFO, String.format("Executing query: %s", sql));
 		passUpCancel(true);
 		sendAndReceive(sql, Request.RequestType.EXECUTE_QUERY, 0, false, Optional.empty());
@@ -2562,7 +2568,6 @@ public class XGStatement implements Statement
 		}
 
 		conn.setMaxRows(max, false);
-		// this.conn.maxRows = max;
 	}
 
 	private int setMaxRowsSQL(final String cmd) throws SQLException
@@ -2578,7 +2583,7 @@ public class XGStatement implements Statement
 		catch (final NumberFormatException e)
 		{
 		}
-		return conn.setMaxRows(maxRows, reset);
+		return conn.setMaxRowsHardLimit(maxRows, reset);
 	}
 
 	private int setMaxTempDiskSQL(final String cmd) throws SQLException
