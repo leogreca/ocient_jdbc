@@ -1182,15 +1182,28 @@ public class XGStatement implements Statement
 		ClientWireProtocol.ExplainFormat format;
 		String sql = "";
 
-		if (startsWithIgnoreCase(cmd, "EXPLAIN JSON "))
+		if (startsWithIgnoreCase(cmd, "EXPLAIN DEBUG"))
 		{
-			format = ClientWireProtocol.ExplainFormat.JSON;
-			sql = cmd.substring("EXPLAIN JSON ".length()).trim();
+			format = ClientWireProtocol.ExplainFormat.DEBUG; 
+			sql = cmd.substring("EXPLAIN DEBUG ".length()).trim(); 
 		}
-		else
+		else if (startsWithIgnoreCase(cmd, "EXPLAIN PROTO"))
 		{
 			format = ClientWireProtocol.ExplainFormat.PROTO;
-			sql = cmd.substring("EXPLAIN ".length()).trim();
+			sql = cmd.substring("EXPLAIN PROTO ".length()).trim(); 
+		}
+		else 
+		{
+			format = ClientWireProtocol.ExplainFormat.JSON;
+			// Support backwards compatability with EXPLAIN JSON
+			if (startsWithIgnoreCase(cmd, "EXPLAIN JSON"))
+			{
+				sql = cmd.substring("EXPLAIN JSON ".length()).trim();
+			} 
+			else 
+			{
+				sql = cmd.substring("EXPLAIN ".length()).trim();
+			}
 		}
 		final String explainString = explain(sql, format);
 
