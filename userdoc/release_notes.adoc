@@ -10,6 +10,7 @@ Below is the release notes for every driver version that has customer implicatio
 New Features::
 
  * Add support for QUARANTINE
+ * Fix CLI command force external on
 
 //tag::compact[]
 == 1.97 (2021-4-02)

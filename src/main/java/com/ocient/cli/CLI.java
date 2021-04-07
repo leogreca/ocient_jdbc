@@ -737,7 +737,7 @@ public class CLI
 		final boolean force = cmd.toLowerCase().endsWith("on");
 		try
 		{
-			((XGConnection) conn).forceExternal(force);
+			((XGConnection) stmt.getConnection()).forceExternal(force);
 		}
 		catch (final Exception e)
 		{
