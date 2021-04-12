@@ -1191,12 +1191,12 @@ public class XGStatement implements Statement
 		if (startsWithIgnoreCase(cmd, "EXPLAIN DEBUG"))
 		{
 			format = ClientWireProtocol.ExplainFormat.DEBUG; 
-			sql = cmd.substring("EXPLAIN DEBUG ".length()).trim(); 
+			sql = cmd.substring("EXPLAIN DEBUG".length()).trim(); 
 		}
 		else if (startsWithIgnoreCase(cmd, "EXPLAIN PROTO"))
 		{
 			format = ClientWireProtocol.ExplainFormat.PROTO;
-			sql = cmd.substring("EXPLAIN PROTO ".length()).trim(); 
+			sql = cmd.substring("EXPLAIN PROTO".length()).trim(); 
 		}
 		else 
 		{
@@ -1204,11 +1204,11 @@ public class XGStatement implements Statement
 			// Support backwards compatability with EXPLAIN JSON
 			if (startsWithIgnoreCase(cmd, "EXPLAIN JSON"))
 			{
-				sql = cmd.substring("EXPLAIN JSON ".length()).trim();
+				sql = cmd.substring("EXPLAIN JSON".length()).trim();
 			} 
 			else 
 			{
-				sql = cmd.substring("EXPLAIN ".length()).trim();
+				sql = cmd.substring("EXPLAIN".length()).trim();
 			}
 		}
 		final String explainString = explain(sql, format);
