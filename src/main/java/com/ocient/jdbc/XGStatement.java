@@ -743,7 +743,7 @@ public class XGStatement implements Statement
 		try
 		{
 			passUpCancel(true);
-			if (sql.toUpperCase().startsWith("SELECT ") || sql.toUpperCase().startsWith("WITH ") || sql.toUpperCase().startsWith("EXPLAIN") || sql.toUpperCase().startsWith("LIST TABLES")
+			if (sql.toUpperCase().startsWith("SELECT ") || sql.toUpperCase().startsWith("WITH ") || sql.toUpperCase().startsWith("EXPLAIN ") || sql.toUpperCase().startsWith("LIST TABLES")
 				|| sql.toUpperCase().startsWith("LIST SYSTEM TABLES") || sql.toUpperCase().startsWith("LIST VIEWS") || sql.toUpperCase().startsWith("LIST INDICES ")
 				|| sql.toUpperCase().startsWith("LIST INDEXES ") || sql.toUpperCase().startsWith("GET SCHEMA") || sql.toUpperCase().startsWith("DESCRIBE VIEW ")
 				|| sql.toUpperCase().startsWith("DESCRIBE TABLE ") || sql.toUpperCase().startsWith("PLAN EXECUTE ") || sql.toUpperCase().startsWith("PLAN EXPLAIN ")
@@ -890,7 +890,7 @@ public class XGStatement implements Statement
 			if (startsWithIgnoreCase(sql, "EXPLAIN PIPELINE ")) {
 		        return explainPipelineSQL(sql);
        		} 
-			else if (startsWithIgnoreCase(sql, "EXPLAIN"))
+			else if (startsWithIgnoreCase(sql, "EXPLAIN "))
 			{
 				return explainSQL(sql);
 			}
@@ -1188,34 +1188,27 @@ public class XGStatement implements Statement
 		ClientWireProtocol.ExplainFormat format;
 		String sql = "";
 
-		Pattern explainDebugPattern = Pattern.compile("EXPLAIN\\s*DEBUG\\s*", Pattern.CASE_INSENSITIVE); 
-		Pattern explainProtoPattern = Pattern.compile("EXPLAIN\\s*PROTO\\s*", Pattern.CASE_INSENSITIVE); 
-		Matcher explainDebugMatcher = explainDebugPattern.matcher(cmd); 
-		Matcher explainProtoMatcher = explainProtoPattern.matcher(cmd); 
-
-		if (explainDebugMatcher.lookingAt())
+		if (startsWithIgnoreCase(cmd, "EXPLAIN DEBUG"))
 		{
 			format = ClientWireProtocol.ExplainFormat.DEBUG; 
-			sql = cmd.substring(explainDebugMatcher.end()).trim(); 
+			sql = cmd.substring("EXPLAIN DEBUG ".length()).trim(); 
 		}
-		else if (explainProtoMatcher.lookingAt())
+		else if (startsWithIgnoreCase(cmd, "EXPLAIN PROTO"))
 		{
 			format = ClientWireProtocol.ExplainFormat.PROTO;
-			sql = cmd.substring(explainProtoMatcher.end()).trim(); 
+			sql = cmd.substring("EXPLAIN PROTO ".length()).trim(); 
 		}
 		else 
 		{
 			format = ClientWireProtocol.ExplainFormat.JSON;
-			Pattern explainJSONPattern = Pattern.compile("EXPLAIN\\s*(JSON)?\\s*", Pattern.CASE_INSENSITIVE); 
-			Matcher explainJSONMatcher = explainJSONPattern.matcher(cmd); 
-			if (explainJSONMatcher.lookingAt()) 
+			// Support backwards compatability with EXPLAIN JSON
+			if (startsWithIgnoreCase(cmd, "EXPLAIN JSON"))
 			{
-				sql = cmd.substring(explainJSONMatcher.end()).trim(); 
+				sql = cmd.substring("EXPLAIN JSON ".length()).trim();
 			} 
 			else 
 			{
-				// Invalid explain command 
-				sql = cmd.substring("EXPLAIN".length()).trim();
+				sql = cmd.substring("EXPLAIN ".length()).trim();
 			}
 		}
 		final String explainString = explain(sql, format);
