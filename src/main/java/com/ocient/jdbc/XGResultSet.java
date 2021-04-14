@@ -36,7 +36,6 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -209,9 +208,6 @@ public final class XGResultSet implements ResultSet
 	// Whether we hit the first cache break and need to do an asynchronous fetch until resultSet is finished.
 	private final AtomicBoolean cacheLimitBreak = new AtomicBoolean(false);
 	private SQLException cacheLimitException;
-	// Test scenario variable.
-	private final AtomicInteger counter = new AtomicInteger(0);
-	private final AtomicBoolean didSendBreak = new AtomicBoolean(false);
 
 	public XGResultSet(final XGConnection conn, final ArrayList<Object> rs, final XGStatement stmt)
 	{
@@ -2527,14 +2523,14 @@ public final class XGResultSet implements ResultSet
 	@Override
 	public boolean isClosed() throws SQLException
 	{
-		// LOGGER.log(Level.INFO, "Called isClosed()");
+		LOGGER.log(Level.INFO, "Called isClosed()");
 		if (closed)
 		{
-			// LOGGER.log(Level.INFO, "Returning true from isClosed()");
+			LOGGER.log(Level.INFO, "Returning true from isClosed()");
 		}
 		else
 		{
-			// LOGGER.log(Level.INFO, "Returning false from isClosed()");
+			LOGGER.log(Level.INFO, "Returning false from isClosed()");
 		}
 
 		return closed;
