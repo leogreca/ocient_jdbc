@@ -68,7 +68,7 @@ public final class XGResultSet implements ResultSet
 				attachToQuery(newConn, queryId);
 
 				// First fetch has to come from main thread
-				while (!didFirstFetch.get())
+				while (!didFirstFetch.get() && !cacheLimitBreak.get())
 				{
 					Thread.sleep(1);
 				}
@@ -98,9 +98,13 @@ public final class XGResultSet implements ResultSet
 	}
 
 	/*
-	* The main result set thread is responsible for handling the case of the special break.
+	* The main result set thread is responsible for handling the case of the special cache limit warning.
+	* First all the secondary threads are cleaned up.
 	* We will fetch a statement from the statement cache. Then, we will swap the connections
-	* of the statement retrieved from the cache and that of the user statement. 
+	* of the statement retrieved from the cache and that of the user statement. Then this thread
+	* will continue to fetch until we receive a DEM or an error. The purpose of this continued fetching 
+	* is to occupy the connection so that the driver does not use it, because the corresponding
+	* connection on the server side is still running a query.
 	*/
 	public class XGResultSetThread implements Runnable
 	{
@@ -110,7 +114,7 @@ public final class XGResultSet implements ResultSet
 			getMoreData();
 
 			// Check for the special cache time limit hit.
-			if(specialBreakReceived.get()){
+			if(cacheLimitBreak.get()){
 
 				// First, collect all the secondary fetch threads. Which should have returned by now.
 				LOGGER.log(Level.INFO, String.format("Now cleaning up secondary threads of size: %d", fetchThreads.size() - 1));
@@ -124,7 +128,7 @@ public final class XGResultSet implements ResultSet
 						}
 					}
 				} catch(final Exception e){
-					LOGGER.log(Level.WARNING, "Timmy debug. Failed to join fetch threads");
+					LOGGER.log(Level.WARNING, "ERROR: Failed to join secondary fetch threads");
 				}
 
 				LOGGER.log(Level.INFO, "First cache timeout limit hit. Asynchrnously finishing fetch on main resultSetThread.");
@@ -142,17 +146,12 @@ public final class XGResultSet implements ResultSet
 
 					// Very important step. So that if resultSet.close() gets called, it won't close the old connection.
 					conn = stmt.conn;
-
-					final ArrayList<Object> alo2 = new ArrayList<>();
-					String reason = new String("Ha get recked");
-					String reason2 = new String("Stupid");
-					Integer reason3 = 5;
-					SQLException ex = new SQLException(reason, reason2, reason3);
-					alo2.add(ex);
-					rsQueue.put(alo2);
+					// It must be at this point, after we've replaced the statement exception, do we fill the result set with the cacheLimitException.
+					final ArrayList<Object> alo = new ArrayList<>();
+					alo.add(cacheLimitException);
+					rsQueue.put(alo);
 	
 					asyncFinishFetch(oldConn);
-
 				} catch(final Exception e)
 				{
 					LOGGER.log(Level.WARNING, "Unable to create new statement in order to finish fetching result set due to cache time limit hit");
@@ -179,6 +178,8 @@ public final class XGResultSet implements ResultSet
 		return buff;
 	}
 
+	// It is assumed the vendor codes never change. At this time, the code is 1 for special cache warning.
+	private static int CACHE_LIMIT_WARNING_CODE = 1;
 	private ArrayList<Object> rs = null;
 	private long firstRowIs = 0;
 	private long position = -1;
@@ -206,7 +207,8 @@ public final class XGResultSet implements ResultSet
 	private final AtomicBoolean demReceived = new AtomicBoolean(false);
 
 	// Whether we hit the first cache break and need to do an asynchronous fetch until resultSet is finished.
-	private final AtomicBoolean specialBreakReceived = new AtomicBoolean(false);
+	private final AtomicBoolean cacheLimitBreak = new AtomicBoolean(false);
+	private SQLException cacheLimitException;
 	// Test scenario variable.
 	private final AtomicInteger counter = new AtomicInteger(0);
 	private final AtomicBoolean didSendBreak = new AtomicBoolean(false);
@@ -362,7 +364,7 @@ public final class XGResultSet implements ResultSet
 		 * these threads are cleaned in the case of asynchronous finish fetch.
 		 */
 		
-		if(!specialBreakReceived.get()){
+		if(!cacheLimitBreak.get()){
 			for (final Thread t : fetchThreads)
 			{
 				t.interrupt();
@@ -1474,7 +1476,6 @@ public final class XGResultSet implements ResultSet
 	 */
 	private void getMoreData(final XGConnection newConn)
 	{
-		LOGGER.log(Level.INFO, "Timmy debug getMoreData called");
 		if (immutable)
 		{
 			// no data to get as the resultset was prepopulate at construction time.
@@ -1486,54 +1487,23 @@ public final class XGResultSet implements ResultSet
 			final Optional<String> queryId = getQueryId();
 			stmt.passUpCancel(false);
 			// send FetchData request with fetchSize parameter
-			// final ClientWireProtocol.FetchData.Builder builder = ClientWireProtocol.FetchData.newBuilder();
-			// builder.setFetchSize(fetchSize);
-			// builder.setFetchNum(5);
-			// final FetchData msg = builder.build();
-			// final ClientWireProtocol.Request.Builder b2 = ClientWireProtocol.Request.newBuilder();
-			// b2.setType(ClientWireProtocol.Request.RequestType.FETCH_DATA);
-			// b2.setFetchData(msg);
-			// final Request wrapper = b2.build();
+			final ClientWireProtocol.FetchData.Builder builder = ClientWireProtocol.FetchData.newBuilder();
+			builder.setFetchSize(fetchSize);
+			final FetchData msg = builder.build();
+			final ClientWireProtocol.Request.Builder b2 = ClientWireProtocol.Request.newBuilder();
+			b2.setType(ClientWireProtocol.Request.RequestType.FETCH_DATA);
+			b2.setFetchData(msg);
+			final Request wrapper = b2.build();
 
 			while (true)
 			{
 				if (demReceived.get())
 				{
 					return;
-				} else if(specialBreakReceived.get()){
-					LOGGER.log(Level.WARNING, "Timmy debug. Got the special break. Leaving");
+				} else if(cacheLimitBreak.get()){
+					LOGGER.log(Level.WARNING, "Thread saw cacheLimitBreak. Exiting getMoreData");
 					return;
 				}
-
-				final ClientWireProtocol.FetchData.Builder builder = ClientWireProtocol.FetchData.newBuilder();
-				builder.setFetchSize(fetchSize);
-				builder.setBreakNum(5);
-
-				int rowsReceivedNow = counter.get();
-				LOGGER.log(Level.INFO, String.format("Timmy debug Number of rows received on this thread: %d", rowsReceivedNow));
-				if(!didSendBreak.get()){
-					if(rowsReceivedNow > 200000 && didSendBreak.compareAndSet(false, true)){
-						LOGGER.log(Level.WARNING, String.format("Timmy debug sending the break result"));
-						builder.setBreakResult(true);
-						boolean temp = builder.getBreakResult();
-						if(temp){
-							LOGGER.log(Level.WARNING, String.format("Timmy debug break result successfully set"));
-						} else {
-							LOGGER.log(Level.WARNING, String.format("Timmy debug break result NOT set"));
-						}
-					} else {
-						builder.setBreakResult(false);
-					}
-				} else {
-					builder.setBreakResult(false);
-				}
-
-				final FetchData msg = builder.build();
-				final ClientWireProtocol.Request.Builder b2 = ClientWireProtocol.Request.newBuilder();
-				b2.setType(ClientWireProtocol.Request.RequestType.FETCH_DATA);
-				b2.setFetchData(msg);
-				final Request wrapper = b2.build();
-
 				newConn.out.write(intToBytes(wrapper.getSerializedSize()));
 				wrapper.writeTo(newConn.out);
 				newConn.out.flush();
@@ -1553,17 +1523,12 @@ public final class XGResultSet implements ResultSet
 
 				final ConfirmationResponse response = fdr.getResponse();
 				final ResponseType rType = response.getType();
-				// GOING TO REMOVE THIS BEGIN
-				if(rType.equals(ResponseType.RESPONSE_SPECIAL)){
-					LOGGER.log(Level.WARNING, "Timmy debug. Got the special break!!!!!!!!!!!!!!!!!!!!");
-					// 963: break out here.
-					specialBreakReceived.compareAndSet(false,true);
+				if(processResponseType(rType, response)){
+					LOGGER.log(Level.INFO, "Got special cache limit warning.");
+					// Flip the necessary flags to exit.
+					cacheLimitBreak.compareAndSet(false,true);
 					return;
-				} else {
-					LOGGER.log(Level.INFO, "Timmy debug. Not the special break. continue.");
-				}
-				// GOING TO REMOVE THIS END
-				processResponseType(rType, response);
+				} 
 				if (!mergeData(fdr.getResultSet()))
 				{
 					return;
@@ -2932,7 +2897,7 @@ public final class XGResultSet implements ResultSet
 
 		// Need to not join threads here if we got the special break. The main thread cannot
 		// cannot return yet. It needs to finish the fetch.
-		if (done && didFirstFetch.get() && !specialBreakReceived.get())
+		if (done && didFirstFetch.get() && !cacheLimitBreak.get())
 		{
 			// Spin and wait for other threads
 			for (final Thread t : fetchThreads)
@@ -2948,17 +2913,6 @@ public final class XGResultSet implements ResultSet
 		if (!newRs.isEmpty())
 		{
 			rsQueue.put(newRs);
-			// WILL REMOVE THIS BEGIN.
-			int rowsReceived = newRs.size();
-			while(true){
-				int existingValue = counter.get();
-				int newValue = existingValue + rowsReceived;
-				if(counter.compareAndSet(existingValue, newValue)) {
-					break;
-				}
-				LOGGER.log(Level.INFO, String.format("Incremented. Rows Received now: %d", counter.get()));
-			}
-			// WILL REMOVE THIS END.
 		}
 		return !done;
 	}
@@ -3048,7 +3002,12 @@ public final class XGResultSet implements ResultSet
 		throw new SQLFeatureNotSupportedException();
 	}
 
-	private void processResponseType(final ResponseType rType, final ConfirmationResponse response) throws SQLException
+	/*!
+	 * Returns true if the special cache limit warning is received. This signals the result set fetching
+	 * to break and finish via an asynchronous fetch.
+	 */
+
+	private boolean processResponseType(final ResponseType rType, final ConfirmationResponse response) throws SQLException
 	{
 		if (rType.equals(ResponseType.INVALID))
 		{
@@ -3060,17 +3019,22 @@ public final class XGResultSet implements ResultSet
 			final String reason = response.getReason();
 			final String sqlState = response.getSqlState();
 			final int code = response.getVendorCode();
-			LOGGER.log(Level.WARNING, String.format("Server returned an error response [%s] %s", sqlState, reason));
+			LOGGER.log(Level.WARNING, String.format("Server returned an error response [%s] %s. Code: %d", sqlState, reason, code));
 			throw new SQLException(reason, sqlState, code);
 		}
 		else if (rType.equals(ResponseType.RESPONSE_WARN))
 		{
-			LOGGER.log(Level.WARNING, "Received a warning response from the server");
 			final String reason = response.getReason();
 			final String sqlState = response.getSqlState();
 			final int code = response.getVendorCode();
+			if(code == CACHE_LIMIT_WARNING_CODE){
+				cacheLimitException = new SQLException(reason, sqlState, code);
+				return true;
+			}
+			LOGGER.log(Level.WARNING, String.format("Server returned a warning response [%s] %s. Code: %d", sqlState, reason, code));
 			warnings.add(new SQLWarning(reason, sqlState, code));
 		}
+		return false;
 	}
 
 	private void readBytes(final byte[] bytes) throws Exception
@@ -3879,7 +3843,7 @@ public final class XGResultSet implements ResultSet
 	 */
 	public void asyncFinishFetch(final XGConnection newConn)
 	{
-		LOGGER.log(Level.INFO, "Timmy debug asyncFinishFetch called");
+		LOGGER.log(Level.INFO, "asyncFinishFetch called");
 		try
 		{
 			final Optional<String> queryId = getQueryId();
@@ -3922,7 +3886,6 @@ public final class XGResultSet implements ResultSet
 		}
 		catch (final Exception e)
 		{
-			LOGGER.log(Level.WARNING, "Timmy debug async fetch messed up");
 			// The asynchronous result set fetch failed with an error. That is fine, we don't need this result set anymore. Log and return.
 			LOGGER.log(Level.WARNING, String.format("Exception %s occurred while finishing asynchronous fetching of result set with message %s. This is an error.", e.toString(), e.getMessage()));
 			return;
@@ -3941,12 +3904,12 @@ public final class XGResultSet implements ResultSet
 			final ByteBuffer bb = buffer.asReadOnlyByteBuffer();
 			if (isBufferDem(bb))
 			{
-				LOGGER.log(Level.WARNING, "Timmy debug searchDEM found dem");
+				LOGGER.log(Level.WARNING, "searchDEM found dem");
 				demReceived.set(true);
 				return true;
 			}
 		}
-		LOGGER.log(Level.INFO, "Timmy debug searchDEM did not find DEM");
+		LOGGER.log(Level.INFO, "searchDEM did not find DEM");
 		return false;
 	}
 }
