@@ -149,8 +149,14 @@ public final class XGResultSet implements ResultSet
 					final ArrayList<Object> alo = new ArrayList<>();
 					alo.add(cacheLimitException);
 					rsQueue.put(alo);
-	
+					// Add this to the list of background fetching threads.
+					synchronized(asyncFetchThreads){
+						asyncFetchThreads.put(Thread.currentThread(), Thread.currentThread());
+					}
 					asyncFinishFetch(oldConn);
+					synchronized(asyncFetchThreads){
+						asyncFetchThreads.remove(Thread.currentThread());
+					}
 				} catch(final Exception e)
 				{
 					LOGGER.log(Level.WARNING, "Unable to create new statement in order to finish fetching result set due to cache time limit hit");
@@ -208,6 +214,7 @@ public final class XGResultSet implements ResultSet
 	// Whether we hit the first cache break and need to do an asynchronous fetch until resultSet is finished.
 	private final AtomicBoolean cacheLimitBreak = new AtomicBoolean(false);
 	private SQLException cacheLimitException;
+	private static HashMap<Thread, Thread> asyncFetchThreads = new HashMap<Thread,Thread>();
 
 	public XGResultSet(final XGConnection conn, final ArrayList<Object> rs, final XGStatement stmt)
 	{
@@ -281,6 +288,21 @@ public final class XGResultSet implements ResultSet
 	{
 		LOGGER.log(Level.WARNING, "afterLast() was called, which is not supported");
 		throw new SQLFeatureNotSupportedException();
+	}
+
+	public static void cancelAsyncFetchThreads(){
+		LOGGER.log(Level.INFO, "Canceling asynchronous fetch threads.");
+		for(Thread thread: asyncFetchThreads.keySet()){
+			thread.interrupt();
+			try
+			{
+				thread.join();
+			}
+			catch (final Exception e)
+			{
+				LOGGER.log(Level.WARNING, "ERROR failed to cancel asynchronous fetch thread.");
+			}
+		}
 	}
 
 	/*
@@ -3853,7 +3875,7 @@ public final class XGResultSet implements ResultSet
 			final Request wrapper = b2.build();
 			while(true)
 			{
-				if (demReceived.get())
+				if (demReceived.get() || Thread.currentThread().interrupted())
 				{
 					return;
 				}
@@ -3900,7 +3922,7 @@ public final class XGResultSet implements ResultSet
 			final ByteBuffer bb = buffer.asReadOnlyByteBuffer();
 			if (isBufferDem(bb))
 			{
-				LOGGER.log(Level.WARNING, "searchDEM found dem");
+				LOGGER.log(Level.INFO, "searchDEM found dem");
 				demReceived.set(true);
 				return true;
 			}
