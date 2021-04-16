@@ -1156,10 +1156,20 @@ public class XGStatement implements Statement
 		LOGGER.log(Level.INFO, "Entered driver's explainPlan()");
 		String plan = cmd.substring("PLAN EXPLAIN ".length()).trim();
 		ClientWireProtocol.ExplainFormat format = ClientWireProtocol.ExplainFormat.PROTO;
-		if (startsWithIgnoreCase(plan, "JSON "))
+		if (startsWithIgnoreCase(plan, "PROTO "))
 		{
-			plan = plan.substring("JSON ".length()).trim();
+			plan = plan.substring("PROTO ".length()).trim();
+			format = ClientWireProtocol.ExplainFormat.PROTO;
+		} else if (startsWithIgnoreCase(plan, "DEBUG "))
+		{
+			plan = plan.substring("DEBUG ".length()).trim();
+			format = ClientWireProtocol.ExplainFormat.DEBUG;
+		} else
+		{
 			format = ClientWireProtocol.ExplainFormat.JSON;
+			if (startsWithIgnoreCase(plan, "JSON ")) {
+				plan = plan.substring("JSON ".length()).trim();
+			}
 		}
 		final String pm = explainPlan(plan, format);
 		final ArrayList<Object> rs = new ArrayList<>();
