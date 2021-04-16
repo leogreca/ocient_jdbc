@@ -5,6 +5,13 @@ All our jdbc drivers are located {drivers_repo}[here].
 Below is the release notes for every driver version that has customer implication.
 
 //tag::compact[]
+== 1.99 (2021-4-13)
+
+New Features:: 
+
+ * Add support for EXPLAIN DEBUG, and make EXPLAIN format JSON by default
+ 
+//tag::compact[] 
 == 1.98 (2021-4-05)
 
 New Features::
