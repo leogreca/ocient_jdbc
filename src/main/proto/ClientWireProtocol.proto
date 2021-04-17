@@ -226,6 +226,7 @@ enum ExplainFormat
 {
 	PROTO = 0;
 	JSON = 1;
+	DEBUG = 2; 
 }
 
 message ExecuteExplain

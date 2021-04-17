@@ -1160,10 +1160,20 @@ public class XGStatement implements Statement
 		LOGGER.log(Level.INFO, "Entered driver's explainPlan()");
 		String plan = cmd.substring("PLAN EXPLAIN ".length()).trim();
 		ClientWireProtocol.ExplainFormat format = ClientWireProtocol.ExplainFormat.PROTO;
-		if (startsWithIgnoreCase(plan, "JSON "))
+		if (startsWithIgnoreCase(plan, "PROTO "))
 		{
-			plan = plan.substring("JSON ".length()).trim();
+			plan = plan.substring("PROTO ".length()).trim();
+			format = ClientWireProtocol.ExplainFormat.PROTO;
+		} else if (startsWithIgnoreCase(plan, "DEBUG "))
+		{
+			plan = plan.substring("DEBUG ".length()).trim();
+			format = ClientWireProtocol.ExplainFormat.DEBUG;
+		} else
+		{
 			format = ClientWireProtocol.ExplainFormat.JSON;
+			if (startsWithIgnoreCase(plan, "JSON ")) {
+				plan = plan.substring("JSON ".length()).trim();
+			}
 		}
 		final String pm = explainPlan(plan, format);
 		final ArrayList<Object> rs = new ArrayList<>();
@@ -1192,15 +1202,28 @@ public class XGStatement implements Statement
 		ClientWireProtocol.ExplainFormat format;
 		String sql = "";
 
-		if (startsWithIgnoreCase(cmd, "EXPLAIN JSON "))
+		if (startsWithIgnoreCase(cmd, "EXPLAIN DEBUG "))
 		{
-			format = ClientWireProtocol.ExplainFormat.JSON;
-			sql = cmd.substring("EXPLAIN JSON ".length()).trim();
+			format = ClientWireProtocol.ExplainFormat.DEBUG; 
+			sql = cmd.substring("EXPLAIN DEBUG ".length()).trim(); 
 		}
-		else
+		else if (startsWithIgnoreCase(cmd, "EXPLAIN PROTO "))
 		{
 			format = ClientWireProtocol.ExplainFormat.PROTO;
-			sql = cmd.substring("EXPLAIN ".length()).trim();
+			sql = cmd.substring("EXPLAIN PROTO ".length()).trim(); 
+		}
+		else 
+		{
+			format = ClientWireProtocol.ExplainFormat.JSON;
+			// Support backwards compatability with EXPLAIN JSON
+			if (startsWithIgnoreCase(cmd, "EXPLAIN JSON "))
+			{
+				sql = cmd.substring("EXPLAIN JSON ".length()).trim();
+			} 
+			else 
+			{
+				sql = cmd.substring("EXPLAIN ".length()).trim();
+			}
 		}
 		final String explainString = explain(sql, format);
 
